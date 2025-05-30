@@ -1,9 +1,9 @@
 import sqlite3
-from data_manager_interface import AbstractDataManager
+from .data_manager_interface import AbstractDataManager
 
 
 class SQLiteDataManager(AbstractDataManager):
-    def __init__(self, db_path=database.db):
+    def __init__(self, db_path="database.db"):
         """
         Initialize the SQLiteDataManager with a connection to the specified SQLite database.
         Args:
@@ -17,7 +17,7 @@ class SQLiteDataManager(AbstractDataManager):
         """
         Retrieve a user from the database by user ID.
         Args:
-            user_id (int): The ID of the user to retrieve.
+            user _id (int): The ID of the user to retrieve.
         Returns:
             sqlite3.Row: The user record, or None if not found.
         """
@@ -103,7 +103,7 @@ class SQLiteDataManager(AbstractDataManager):
         return cur.fetchall()
 
 
-    def save_weeky_plan(self, goal_id, week_start_date):
+    def save_weekly_plan(self, goal_id, week_start_date):
         """
         Save a new weekly plan for a specific goal starting from a given date.
         Args:
@@ -139,10 +139,14 @@ class SQLiteDataManager(AbstractDataManager):
             description (str): The description of the task.
         """
         cur = self.conn.cursor()
+        # Insert user_id by looking up the user_id from the goal
+        cur.execute("SELECT user_id FROM goals WHERE id = ?", (goal_id,))
+        row = cur.fetchone()
+        user_id = row['user_id'] if row else None
         cur.execute("""
-                    INSERT INTO tasks (goal_id, day, description, completed, is_custom)
-                    VALUES (?, ?, ?, ?, ?)
-                    """, (goal_id, day, description, False, True))
+                    INSERT INTO tasks (user_id, goal_id, day, description, completed, is_custom, date)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """, (user_id, goal_id, day, description, False, True, day))
         self.conn.commit()
 
 
@@ -153,7 +157,7 @@ class SQLiteDataManager(AbstractDataManager):
             task_id (int): The ID of the task to mark as complete.
         """
         cur = self.conn.cursor()
-        cur.execute("UPDATE tasks SET completed = 1 WHERE id = ?", (True, task_id))
+        cur.execute("UPDATE tasks SET completed = 1 WHERE id = ?", (task_id,))
         self.conn.commit()
 
 

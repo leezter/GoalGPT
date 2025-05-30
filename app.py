@@ -1,6 +1,38 @@
+from flask import Flask, jsonify, request
+from datamanager.data_manager import SQLiteDataManager
+
+app = Flask(__name__)
+data_manager = SQLiteDataManager("database.db")
+
+@app.route("/api/users/<int:user_id>", methods=["GET"])
+def get_user(user_id):
+    user = data_manager.get_user(user_id)
+    if user:
+        return jsonify(dict(user)), 200
+    return jsonify({"error": "User not found"}), 404
+
+@app.route("/api/goals/<int:user_id>", methods=["GET"])
+def get_goals(user_id):
+    goals = data_manager.get_goals(user_id)
+    return jsonify([dict(goal) for goal in goals]), 200
+
+@app.route("/api/goals", methods=["POST"])
+def add_goal():
+    data = request.get_json()
+    user_id = data.get("user_id")
+    description = data.get("description")
+    if not user_id or not description:
+        return jsonify({"error": "user_id and description required"}), 400
+    data_manager.save_goal(user_id, description)
+    return jsonify({"message": "Goal added"}), 201
+
+@app.route("/api/tasks/<int:user_id>/<date>", methods=["GET"])
+def get_tasks_for_date(user_id, date):
+    tasks = data_manager.get_tasks_for_date(user_id, date)
+    return jsonify([dict(task) for task in tasks]), 200
 
 def main():
-    pass
+    app.run(debug=True)
 
 
 if __name__ == "__main__":
