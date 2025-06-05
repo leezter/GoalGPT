@@ -1,8 +1,12 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from datamanager.data_manager import SQLiteDataManager
 
 app = Flask(__name__)
 data_manager = SQLiteDataManager("database.db")
+
+@app.route("/")
+def home():
+    return render_template("index.html")
 
 @app.route("/api/users/<int:user_id>", methods=["GET"])
 def get_user(user_id):
