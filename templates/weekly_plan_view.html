@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Plan - GoalGPT</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Weekly Plan</h1>
+            <p id="motivation" class="motivation">"Success is the sum of small efforts, repeated day in and day out."</p>
+        </header>
+        <main>
+            <section>
+                <h2 id="goal-title">Goal: </h2>
+                <table class="weekly-table">
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Task</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tasks-body">
+                        <!-- AI-generated tasks will be inserted here -->
+                    </tbody>
+                </table>
+                <button id="add-reminder" class="cta-btn secondary" style="margin-top:1em;">Add Reminder</button>
+            </section>
+        </main>
+        <footer>
+            <p>&copy; 2025 GoalGPT. All rights reserved.</p>
+        </footer>
+    </div>
+    <script>
+    // Example data, replace with real data from backend
+    const goalDescription = localStorage.getItem('selectedGoal') || 'Your Goal';
+    const aiTasks = [
+        { day: 'Monday', task: 'Research topic' },
+        { day: 'Tuesday', task: 'Practice exercises' },
+        { day: 'Wednesday', task: 'Review notes' },
+        { day: 'Thursday', task: 'Apply knowledge' },
+        { day: 'Friday', task: 'Reflect on progress' },
+        { day: 'Saturday', task: 'Rest and recharge' },
+        { day: 'Sunday', task: 'Plan next week' }
+    ];
+    document.getElementById('goal-title').textContent = `Goal: ${goalDescription}`;
+    const tbody = document.getElementById('tasks-body');
+    aiTasks.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${row.day}</td><td>${row.task}</td>`;
+        tbody.appendChild(tr);
+    });
+    document.getElementById('add-reminder').onclick = function() {
+        const reminder = prompt('Enter your custom reminder/task:');
+        if (reminder) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>Custom</td><td>${reminder}</td>`;
+            tbody.appendChild(tr);
+        }
+    };
+    </script>
+</body>
+</html>

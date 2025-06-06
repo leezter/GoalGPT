@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Goal - GoalGPT</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Add a New Goal</h1>
+        </header>
+        <main>
+            <form id="add-goal-form" method="POST" action="/add_goal">
+                <label for="description">Goal Name/Description</label>
+                <input type="text" id="description" name="description" required placeholder="e.g. Learn Python">
+                <button type="submit" class="cta-btn">Submit & Generate Weekly Plan</button>
+            </form>
+            <div id="plan-result" style="margin-top:2em;"></div>
+        </main>
+        <footer>
+            <p>&copy; 2025 GoalGPT. All rights reserved.</p>
+        </footer>
+    </div>
+    <script>
+    document.getElementById('add-goal-form').onsubmit = async function(e) {
+        e.preventDefault();
+        const desc = document.getElementById('description').value;
+        const response = await fetch('/add_goal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ description: desc })
+        });
+        const data = await response.json();
+        let resultDiv = document.getElementById('plan-result');
+        if (data.weekly_plan) {
+            resultDiv.innerHTML = `<h2>AI-Generated Weekly Plan</h2><pre>${data.weekly_plan}</pre>`;
+        } else if (data.error) {
+            resultDiv.innerHTML = `<span style='color:red;'>${data.error}</span>`;
+        } else {
+            resultDiv.innerHTML = '<span style="color:red;">Unknown error.</span>';
+        }
+    };
+    </script>
+</body>
+</html>

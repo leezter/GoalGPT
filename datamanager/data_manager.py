@@ -53,13 +53,14 @@ class SQLiteDataManager(AbstractDataManager):
         return cur.fetchall()
 
 
-    def save_goal(self, user_id, description):
+    def save_goal(self, user_id, goal):
         """
         Save a new goal for a user in the database.
         Args:
             user_id (int): The ID of the user.
             goal (dict): A dictionary containing goal details, must include 'description'.
         """
+        description = goal['description']
         cur = self.conn.cursor()
         cur.execute("INSERT INTO goals (user_id, description) VALUES (?, ?)", (user_id, description))
         self.conn.commit()

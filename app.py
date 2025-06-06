@@ -35,6 +35,28 @@ def get_tasks_for_date(user_id, date):
     tasks = data_manager.get_tasks_for_date(user_id, date)
     return jsonify([dict(task) for task in tasks]), 200
 
+@app.route("/add_goal", methods=["GET"])
+def add_goal_page():
+    return render_template("add_goal.html")
+
+@app.route("/add_goal", methods=["POST"])
+def add_goal_submit():
+    data = request.get_json()
+    description = data.get("description")
+    # For demo: use test user (id=1)
+    user_id = 1
+    if not description:
+        return jsonify({"error": "Description required"}), 400
+    # Save the goal
+    data_manager.save_goal(user_id, {"description": description})
+    # Simulate AI-generated weekly plan (replace with real AI logic as needed)
+    weekly_plan = f"Weekly plan for '{description}':\n- Monday: Research\n- Tuesday: Practice\n- Wednesday: Review\n- Thursday: Apply\n- Friday: Reflect\n- Saturday: Rest\n- Sunday: Plan next week"
+    return jsonify({"weekly_plan": weekly_plan})
+
+@app.route("/weekly_plan_view", methods=["GET"])
+def weekly_plan_view():
+    return render_template("weekly_plan_view.html")
+
 def main():
     app.run(debug=True)
 
