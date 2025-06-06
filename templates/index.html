@@ -9,20 +9,34 @@
 <body>
     <div class="container">
         <header>
-            <h1>Welcome to GoalGPT</h1>
-            <p>Your personal goal and task manager</p>
+            <h1 id="greeting">Welcome to GoalGPT</h1>
+            <p id="summary">Loading your summary...</p>
         </header>
         <main>
             <section class="intro">
-                <h2>Get Started</h2>
-                <p>Track your goals, plan your weeks, and manage your daily tasks with ease.</p>
-                <a href="#" class="cta-btn">Sign In</a>
-                <a href="#" class="cta-btn secondary">Register</a>
+                <button onclick="window.location.href='/add_goal'" class="cta-btn">Add New Goal</button>
+                <a href="#" id="today-link" class="cta-btn secondary">View Today's Tasks</a>
             </section>
         </main>
         <footer>
             <p>&copy; 2025 GoalGPT. All rights reserved.</p>
         </footer>
     </div>
+    <script>
+    // Simulate user greeting and summary (replace with real data from backend if needed)
+    const userName = 'Test User';
+    const today = new Date().toISOString().slice(0, 10);
+    document.getElementById('greeting').textContent = `Hello, ${userName}!`;
+    // Fetch today's tasks count from API
+    fetch(`/api/tasks/1/${today}`)
+        .then(res => res.json())
+        .then(tasks => {
+            document.getElementById('summary').textContent = `You have ${tasks.length} task${tasks.length === 1 ? '' : 's'} today.`;
+        })
+        .catch(() => {
+            document.getElementById('summary').textContent = 'Welcome to your dashboard!';
+        });
+    document.getElementById('today-link').href = `/api/tasks/1/${today}`;
+    </script>
 </body>
 </html>

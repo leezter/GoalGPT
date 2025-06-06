@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Today's Tasks - GoalGPT</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Today's Tasks</h1>
+            <p id="streak-comment" class="motivation"></p>
+        </header>
+        <main>
+            <section>
+                <ul id="tasks-list" class="tasks-list">
+                    <!-- Tasks will be inserted here -->
+                </ul>
+                <form id="quick-task-form" style="margin-top:2em;">
+                    <input type="text" id="quick-task-input" placeholder="Add a quick task..." required>
+                    <button type="submit" class="cta-btn">Add</button>
+                </form>
+            </section>
+        </main>
+        <footer>
+            <p>&copy; 2025 GoalGPT. All rights reserved.</p>
+        </footer>
+    </div>
+    <script>
+    // Example tasks for demo
+    let tasks = [
+        { id: 1, description: 'Review project goals', completed: false, ai: true },
+        { id: 2, description: 'Write 100 words', completed: false, ai: true },
+        { id: 3, description: 'Custom: Call Alice', completed: false, ai: false },
+        { id: 4, description: 'Custom: Buy groceries', completed: true, ai: false }
+    ];
+    let streakBroken = true; // Simulate a broken streak for demo
+
+    function renderTasks() {
+        const ul = document.getElementById('tasks-list');
+        ul.innerHTML = '';
+        tasks.forEach(task => {
+            const li = document.createElement('li');
+            li.className = task.completed ? 'completed' : '';
+            li.innerHTML = `
+                <label>
+                    <input type="checkbox" ${task.completed ? 'checked' : ''} data-id="${task.id}">
+                    ${task.description} ${task.ai ? '<span class="ai-task">[AI]</span>' : ''}
+                </label>
+            `;
+            ul.appendChild(li);
+        });
+    }
+    renderTasks();
+
+    // Handle checkbox toggle
+    document.getElementById('tasks-list').addEventListener('change', function(e) {
+        if (e.target.type === 'checkbox') {
+            const id = parseInt(e.target.getAttribute('data-id'));
+            tasks = tasks.map(t => t.id === id ? { ...t, completed: e.target.checked } : t);
+            renderTasks();
+        }
+    });
+
+    // Handle quick task add
+    document.getElementById('quick-task-form').onsubmit = function(e) {
+        e.preventDefault();
+        const val = document.getElementById('quick-task-input').value.trim();
+        if (val) {
+            tasks.push({ id: Date.now(), description: 'Custom: ' + val, completed: false, ai: false });
+            renderTasks();
+            document.getElementById('quick-task-input').value = '';
+        }
+    };
+
+    // Show AI comment if streak is broken
+    if (streakBroken) {
+        document.getElementById('streak-comment').textContent = "Don't worry! Every day is a new chance to build your streak.";
+    }
+    </script>
+    <style>
+    .tasks-list { list-style: none; padding: 0; }
+    .tasks-list li { margin: 12px 0; font-size: 1.1em; }
+    .tasks-list li.completed label { color: #aaa; text-decoration: line-through; }
+    .ai-task { color: #2d72d9; font-size: 0.9em; margin-left: 8px; }
+    </style>
+</body>
+</html>
