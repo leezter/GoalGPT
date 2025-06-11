@@ -5,17 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GoalGPT - Home</title>
     <link rel="stylesheet" href="static/styles.css">
+    <style>
+    .home-btn {
+        display: inline-block;
+        margin-bottom: 12px;
+        background: #e0e7ef;
+        color: #2d72d9;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 8px 18px;
+        transition: background 0.2s;
+    }
+    .home-btn:hover {
+        background: #b6c6de;
+    }
+    </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1 id="greeting">Welcome to GoalGPT</h1>
+            <a href="/" class="home-btn">Home</a>
+            <h1>Welcome to GoalGPT</h1>
+            <p id="greeting">Hello, Test User!</p>
             <p id="summary">Loading your summary...</p>
         </header>
         <main>
             <section class="intro">
                 <button onclick="window.location.href='/add_goal'" class="cta-btn">Add New Goal</button>
-                <a href="#" id="today-link" class="cta-btn secondary">View Today's Tasks</a>
+                <a href="/tasks/today" id="today-link" class="cta-btn secondary">View Today's Tasks</a>
+                <a href="/weekly_plan_view" class="cta-btn secondary">View Weekly Plan</a>
+                <a href="/goals_overview" class="cta-btn secondary">Goals Overview</a>
             </section>
         </main>
         <footer>
@@ -36,7 +56,7 @@
         .catch(() => {
             document.getElementById('summary').textContent = 'Welcome to your dashboard!';
         });
-    document.getElementById('today-link').href = `/api/tasks/1/${today}`;
+    document.getElementById('today-link').href = '/tasks/today';
     </script>
 </body>
 </html>

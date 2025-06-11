@@ -65,9 +65,34 @@ def add_goal_submit():
 def weekly_plan_view():
     return render_template("weekly_plan_view.html")
 
+
 @app.route("/tasks/today", methods=["GET"])
 def tasks_today():
     return render_template("tasks_today.html")
+
+
+@app.route("/goals_overview", methods=["GET"])
+def goals_overview():
+    return render_template("goals_overview.html")
+
+
+@app.route("/api/goals/<int:goal_id>", methods=["DELETE"])
+def delete_goal(goal_id):
+    success = data_manager.delete_goal(goal_id)
+    if success:
+        return jsonify({"message": "Goal deleted"}), 200
+    else:
+        return jsonify({"error": "Goal not found"}), 404
+
+
+@app.route("/api/goals/<int:goal_id>", methods=["PUT"])
+def update_goal(goal_id):
+    data = request.get_json()
+    new_description = data.get("new_description")
+    if not new_description:
+        return jsonify({"error": "new_description required"}), 400
+    data_manager.update_goal(goal_id, new_description)
+    return jsonify({"message": "Goal updated"}), 200
 
 
 def main():

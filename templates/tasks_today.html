@@ -9,6 +9,7 @@
 <body>
     <div class="container">
         <header>
+            <a href="/" class="home-btn">Home</a>
             <h1>Today's Tasks</h1>
             <p id="streak-comment" class="motivation"></p>
         </header>
@@ -84,6 +85,20 @@
     .tasks-list li { margin: 12px 0; font-size: 1.1em; }
     .tasks-list li.completed label { color: #aaa; text-decoration: line-through; }
     .ai-task { color: #2d72d9; font-size: 0.9em; margin-left: 8px; }
+    .home-btn {
+        display: inline-block;
+        margin-bottom: 12px;
+        background: #e0e7ef;
+        color: #2d72d9;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 8px 18px;
+        transition: background 0.2s;
+    }
+    .home-btn:hover {
+        background: #b6c6de;
+    }
     </style>
 </body>
 </html>

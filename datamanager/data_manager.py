@@ -9,8 +9,11 @@ class SQLiteDataManager(AbstractDataManager):
         Args:
             db_path (str): Path to the SQLite database file. Defaults to 'database.db'.
         """
-        self.conn = sqlite3.connect(db_path)
-        self.conn.row_factory = sqlite3.Row
+        self.db_path = db_path
+
+
+    def get_connection(self):
+        return sqlite3.connect(self.db_path)
 
 
     def get_user(self, user_id):
@@ -21,9 +24,13 @@ class SQLiteDataManager(AbstractDataManager):
         Returns:
             sqlite3.Row: The user record, or None if not found.
         """
-        cur = self.conn.cursor()
+        conn = self.get_connection()
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
         cur.execute("SELECT * FROM users WHERE id = ?", (user_id,))
-        return cur.fetchone()
+        result = cur.fetchone()
+        conn.close()
+        return result
 
 
     def save_user(self, name, email, password_hash):
@@ -34,10 +41,12 @@ class SQLiteDataManager(AbstractDataManager):
             email (str): The email address of the user.
             password_hash (str): The hashed password of the user.
         """
-        cur = self.conn.cursor()
+        conn = self.get_connection()
+        cur = conn.cursor()
         cur.execute("INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)", 
                     (name, email, password_hash))
-        self.conn.commit()
+        conn.commit()
+        conn.close()
 
 
     def get_goals(self, user_id):
@@ -48,9 +57,13 @@ class SQLiteDataManager(AbstractDataManager):
         Returns:
             list[sqlite3.Row]: List of goal records for the user.
         """
-        cur = self.conn.cursor()
+        conn = self.get_connection()
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
         cur.execute("SELECT * FROM goals WHERE user_id = ?", (user_id,))
-        return cur.fetchall()
+        result = cur.fetchall()
+        conn.close()
+        return result
 
 
     def save_goal(self, user_id, goal):
@@ -61,9 +74,11 @@ class SQLiteDataManager(AbstractDataManager):
             goal (dict): A dictionary containing goal details, must include 'description'.
         """
         description = goal['description']
-        cur = self.conn.cursor()
+        conn = self.get_connection()
+        cur = conn.cursor()
         cur.execute("INSERT INTO goals (user_id, description) VALUES (?, ?)", (user_id, description))
-        self.conn.commit()
+        conn.commit()
+        conn.close()
 
 
     def update_goal(self, goal_id, new_description):
@@ -73,9 +88,11 @@ class SQLiteDataManager(AbstractDataManager):
             goal_id (int): The ID of the goal to update.
             new_description (str): The new description for the goal.
         """
-        cur = self.conn.cursor()
+        conn = self.get_connection()
+        cur = conn.cursor()
         cur.execute("UPDATE goals SET description = ? WHERE id = ?", (new_description, goal_id))
-        self.conn.commit()
+        conn.commit()
+        conn.close()
 
 
     def delete_goal(self, goal_id):
@@ -83,10 +100,16 @@ class SQLiteDataManager(AbstractDataManager):
         Delete a goal from the database by its ID.
         Args:
             goal_id (int): The ID of the goal to delete.
+        Returns:
+            bool: True if a goal was deleted, False otherwise.
         """
-        cur = self.conn.cursor()
+        conn = self.get_connection()
+        cur = conn.cursor()
         cur.execute("DELETE FROM goals WHERE id = ?", (goal_id,))
-        self.conn.commit()
+        conn.commit()
+        deleted = cur.rowcount > 0
+        conn.close()
+        return deleted
 
 
     def get_weekly_plan(self, goal_id, week_start_date):
@@ -98,10 +121,13 @@ class SQLiteDataManager(AbstractDataManager):
         Returns:
             list[sqlite3.Row]: List of weekly plan records for the goal.
         """
-        cur = self.conn.cursor()
+        conn = self.get_connection()
+        cur = conn.cursor()
         cur.execute("SELECT * FROM weekly_plans WHERE goal_id = ? AND start_date = ?", 
                     (goal_id, week_start_date))
-        return cur.fetchall()
+        result = cur.fetchall()
+        conn.close()
+        return result
 
 
     def save_weekly_plan(self, goal_id, week_start_date):
@@ -111,10 +137,12 @@ class SQLiteDataManager(AbstractDataManager):
             goal_id (int): The ID of the goal.
             week_start_date (str): The start date of the week (format: 'YYYY-MM-DD').
         """
-        cur = self.conn.cursor()
+        conn = self.get_connection()
+        cur = conn.cursor()
         cur.execute("INSERT INTO weekly_plans (goal_id, start_date) VALUES (?, ?)", 
                     (goal_id, week_start_date))
-        self.conn.commit()
+        conn.commit()
+        conn.close()
 
 
     def get_tasks_for_date(self, user_id, target_date):
@@ -126,9 +154,12 @@ class SQLiteDataManager(AbstractDataManager):
         Returns:
             list[sqlite3.Row]: List of task records for the given date.
         """
-        cur = self.conn.cursor()
+        conn = self.get_connection()
+        cur = conn.cursor()
         cur.execute("SELECT * FROM tasks WHERE user_id = ? AND date = ?", (user_id, target_date))
-        return cur.fetchall()
+        result = cur.fetchall()
+        conn.close()
+        return result
     
 
     def add_custom_task(self, goal_id, day, description):
@@ -139,7 +170,8 @@ class SQLiteDataManager(AbstractDataManager):
             day (str): The day for which the task is being added (format: 'YYYY-MM-DD').
             description (str): The description of the task.
         """
-        cur = self.conn.cursor()
+        conn = self.get_connection()
+        cur = conn.cursor()
         # Insert user_id by looking up the user_id from the goal
         cur.execute("SELECT user_id FROM goals WHERE id = ?", (goal_id,))
         row = cur.fetchone()
@@ -148,7 +180,8 @@ class SQLiteDataManager(AbstractDataManager):
                     INSERT INTO tasks (user_id, goal_id, day, description, completed, is_custom, date)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                     """, (user_id, goal_id, day, description, False, True, day))
-        self.conn.commit()
+        conn.commit()
+        conn.close()
 
 
     def mark_task_complete(self, task_id):
@@ -157,9 +190,11 @@ class SQLiteDataManager(AbstractDataManager):
         Args:
             task_id (int): The ID of the task to mark as complete.
         """
-        cur = self.conn.cursor()
+        conn = self.get_connection()
+        cur = conn.cursor()
         cur.execute("UPDATE tasks SET completed = 1 WHERE id = ?", (task_id,))
-        self.conn.commit()
+        conn.commit()
+        conn.close()
 
 
     def update_task(self, task_id, new_description, new_day=None):
@@ -170,14 +205,16 @@ class SQLiteDataManager(AbstractDataManager):
             new_description (str): The new description for the task.
             new_day (str, optional): The new day for the task (format: 'YYYY-MM-DD'). Defaults to None.
         """
-        cur = self.conn.cursor()
+        conn = self.get_connection()
+        cur = conn.cursor()
         if new_day:
             cur.execute("UPDATE tasks SET description = ?, day = ? WHERE id = ?",
                         (new_description, new_day, task_id))
         else:
             cur.execute("UPDATE tasks SET description = ? WHERE id = ?",
                         (new_description, task_id))
-        self.conn.commit()
+        conn.commit()
+        conn.close()
 
 
     def delete_task(self, task_id):
@@ -186,9 +223,11 @@ class SQLiteDataManager(AbstractDataManager):
         Args:
             task_id (int): The ID of the task to delete.
         """
-        cur = self.conn.cursor()
+        conn = self.get_connection()
+        cur = conn.cursor()
         cur.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
-        self.conn.commit()
+        conn.commit()
+        conn.close()
 
 
     def get_pending_tasks(self, user_id):
@@ -199,13 +238,16 @@ class SQLiteDataManager(AbstractDataManager):
         Returns:
             list[sqlite3.Row]: List of pending task records for the user.
         """
-        cur = self.conn.cursor()
+        conn = self.get_connection()
+        cur = conn.cursor()
         cur.execute("""
                     SELECT t.* FROM tasks t
                     JOIN goals g ON t.goal_id = g.id
                     WHERE t.user_id = ? AND t.completed = 0
                     """, (user_id,))
-        return cur.fetchall()
+        result = cur.fetchall()
+        conn.close()
+        return result
 
 
     def get_completed_tasks(self, user_id):
@@ -216,10 +258,13 @@ class SQLiteDataManager(AbstractDataManager):
         Returns:
             list[sqlite3.Row]: List of completed task records for the user.
         """
-        cur = self.conn.cursor()
+        conn = self.get_connection()
+        cur = conn.cursor()
         cur.execute("""
                     SELECT t.* FROM tasks t
                     JOIN goals g ON t.goal_id = g.id
                     WHERE t.user_id = ? AND t.completed = 1
                     """, (user_id,))
-        return cur.fetchall()
+        result = cur.fetchall()
+        conn.close()
+        return result
