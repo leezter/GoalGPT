@@ -51,30 +51,36 @@
         </footer>
     </div>
     <script>
-    // Example data, replace with real data from backend
-    const goalDescription = localStorage.getItem('selectedGoal') || 'Your Goal';
-    const aiTasks = [
-        { day: 'Monday', task: 'Research topic' },
-        { day: 'Tuesday', task: 'Practice exercises' },
-        { day: 'Wednesday', task: 'Review notes' },
-        { day: 'Thursday', task: 'Apply knowledge' },
-        { day: 'Friday', task: 'Reflect on progress' },
-        { day: 'Saturday', task: 'Rest and recharge' },
-        { day: 'Sunday', task: 'Plan next week' }
-    ];
-    document.getElementById('goal-title').textContent = `Goal: ${goalDescription}`;
-    const tbody = document.getElementById('tasks-body');
-    aiTasks.forEach(row => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${row.day}</td><td>${row.task}</td>`;
-        tbody.appendChild(tr);
-    });
+    // Instead of creating a new goal, fetch the plan for an existing goal
+    // Assume the selected goal's ID is stored in localStorage as 'selectedGoalId'
+    const selectedGoalId = localStorage.getItem('selectedGoalId');
+    if (!selectedGoalId) {
+        document.getElementById('goal-title').textContent = 'No goal selected.';
+        document.getElementById('motivation').textContent = '';
+    } else {
+        fetch(`/api/weekly_plan/${selectedGoalId}`)
+            .then(res => res.json())
+            .then(data => {
+                const plan = data.weekly_plan;
+                document.getElementById('goal-title').textContent = `Goal: ${plan.goal_description || ''}`;
+                document.getElementById('motivation').textContent = plan.week_summary;
+                const tbody = document.getElementById('tasks-body');
+                tbody.innerHTML = '';
+                plan.days.forEach(dayObj => {
+                    dayObj.tasks.forEach(task => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `<td>${dayObj.day}</td><td>${task}</td>`;
+                        tbody.appendChild(tr);
+                    });
+                });
+            });
+    }
     document.getElementById('add-reminder').onclick = function() {
         const reminder = prompt('Enter your custom reminder/task:');
         if (reminder) {
             const tr = document.createElement('tr');
             tr.innerHTML = `<td>Custom</td><td>${reminder}</td>`;
-            tbody.appendChild(tr);
+            document.getElementById('tasks-body').appendChild(tr);
         }
     };
     </script>

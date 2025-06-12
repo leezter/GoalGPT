@@ -1,9 +1,13 @@
 from flask import Flask, jsonify, request, render_template
 from datamanager.data_manager import SQLiteDataManager
+import os
+import openai
 
 
 app = Flask(__name__)
 data_manager = SQLiteDataManager("database.db")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+openai.api_key = OPENAI_API_KEY
 
 
 @app.route("/")
@@ -50,14 +54,54 @@ def add_goal_page():
 def add_goal_submit():
     data = request.get_json()
     description = data.get("description")
-    # For demo: use test user (id=1)
-    user_id = 1
+    user_id = 1  # For demo: use test user (id=1)
     if not description:
         return jsonify({"error": "Description required"}), 400
-    # Save the goal
     data_manager.save_goal(user_id, {"description": description})
-    # Simulate AI-generated weekly plan (replace with real AI logic as needed)
-    weekly_plan = f"Weekly plan for '{description}':\n- Monday: Research\n- Tuesday: Practice\n- Wednesday: Review\n- Thursday: Apply\n- Friday: Reflect\n- Saturday: Rest\n- Sunday: Plan next week"
+    # Call OpenAI API to generate weekly plan
+    prompt = f"""
+Given the goal: '{description}', generate a weekly plan as a JSON object with the following structure:
+{{
+  "week_summary": "A motivational or summary sentence for the week.",
+  "days": [
+    {{ "day": "Monday", "tasks": ["Task 1", "Task 2"] }},
+    ... up to Sunday ...
+  ]
+}}
+Return only valid JSON.
+"""
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are an expert productivity assistant."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=500
+        )
+        import json
+        # Extract JSON from the response
+        content = response['choices'][0]['message']['content']
+        # Try to find the first and last curly braces to extract JSON
+        start = content.find('{')
+        end = content.rfind('}') + 1
+        json_str = content[start:end]
+        weekly_plan = json.loads(json_str)
+    except Exception as e:
+        # Fallback to static plan if OpenAI fails
+        weekly_plan = {
+            "week_summary": f"This week focuses on making progress toward: {description}",
+            "days": [
+                {"day": "Monday", "tasks": ["Research topic"]},
+                {"day": "Tuesday", "tasks": ["Practice exercises"]},
+                {"day": "Wednesday", "tasks": ["Review notes"]},
+                {"day": "Thursday", "tasks": ["Apply knowledge"]},
+                {"day": "Friday", "tasks": ["Reflect on progress"]},
+                {"day": "Saturday", "tasks": ["Rest and recharge"]},
+                {"day": "Sunday", "tasks": ["Plan next week"]}
+            ]
+        }
     return jsonify({"weekly_plan": weekly_plan})
 
 
@@ -93,6 +137,28 @@ def update_goal(goal_id):
         return jsonify({"error": "new_description required"}), 400
     data_manager.update_goal(goal_id, new_description)
     return jsonify({"message": "Goal updated"}), 200
+
+
+@app.route("/api/weekly_plan/<int:goal_id>", methods=["GET"])
+def get_weekly_plan(goal_id):
+    # For demo: fetch goal description and return a static plan
+    goal = data_manager.get_goal(goal_id) if hasattr(data_manager, 'get_goal') else None
+    description = goal['description'] if goal else 'Goal'
+    # TODO: In production, fetch the real plan from DB
+    weekly_plan = {
+        "goal_description": description,
+        "week_summary": f"This week focuses on making progress toward: {description}",
+        "days": [
+            {"day": "Monday", "tasks": ["Research topic"]},
+            {"day": "Tuesday", "tasks": ["Practice exercises"]},
+            {"day": "Wednesday", "tasks": ["Review notes"]},
+            {"day": "Thursday", "tasks": ["Apply knowledge"]},
+            {"day": "Friday", "tasks": ["Reflect on progress"]},
+            {"day": "Saturday", "tasks": ["Rest and recharge"]},
+            {"day": "Sunday", "tasks": ["Plan next week"]}
+        ]
+    }
+    return jsonify({"weekly_plan": weekly_plan})
 
 
 def main():

@@ -103,7 +103,7 @@ fetch('/api/goals/1')
                     <span>${progress}%</span>
                 </td>
                 <td>
-                    <a href="/weekly_plan_view" class="cta-btn small">View Plan</a>
+                    <a href="/weekly_plan_view" class="cta-btn small view-plan-btn" data-goal-id="${goal.id}">View Plan</a>
                     <button class="cta-btn small secondary edit-goal-btn" data-goal-id="${goal.id}" data-goal-desc="${goal.description.replace(/&/g, '&amp;').replace(/'/g, '&#39;').replace(/"/g, '&quot;')}">Edit</button>
                     <button class="cta-btn small danger delete-goal-btn" data-goal-id="${goal.id}">Delete</button>
                 </td>
@@ -112,6 +112,14 @@ fetch('/api/goals/1')
         });
         attachDeleteHandlers();
         attachEditHandlers();
+        // After rendering all rows, attach click handler to all .view-plan-btn links
+        setTimeout(() => {
+            document.querySelectorAll('.view-plan-btn').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    localStorage.setItem('selectedGoalId', btn.getAttribute('data-goal-id'));
+                });
+            });
+        }, 0);
     });
     </script>
     <style>
