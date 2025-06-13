@@ -34,12 +34,12 @@ class SQLiteDataManager(AbstractDataManager):
 
 
     def save_user(self, name, email, password_hash):
-        """
+        """ 
         Save a new user to the database.
         Args:
             name (str): The name of the user.
             email (str): The email address of the user.
-            password_hash (str): The hashed password of the user.
+            password_hash (str): The hashed password of the user. 
         """
         conn = self.get_connection()
         cur = conn.cursor()

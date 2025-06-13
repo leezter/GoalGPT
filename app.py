@@ -12,11 +12,13 @@ openai.api_key = OPENAI_API_KEY
 
 @app.route("/")
 def home():
+    """Render the homepage/dashboard."""
     return render_template("index.html")
 
 
 @app.route("/api/users/<int:user_id>", methods=["GET"])
 def get_user(user_id):
+    """Return user details as JSON for a given user ID."""
     user = data_manager.get_user(user_id)
     if user:
         return jsonify(dict(user)), 200
@@ -24,12 +26,14 @@ def get_user(user_id):
 
 @app.route("/api/goals/<int:user_id>", methods=["GET"])
 def get_goals(user_id):
+    """Return all goals for a user as JSON."""
     goals = data_manager.get_goals(user_id)
     return jsonify([dict(goal) for goal in goals]), 200
 
 
 @app.route("/api/goals", methods=["POST"])
 def add_goal():
+    """Add a new goal for a user via API (JSON POST)."""
     data = request.get_json()
     user_id = data.get("user_id")
     description = data.get("description")
@@ -41,17 +45,20 @@ def add_goal():
 
 @app.route("/api/tasks/<int:user_id>/<date>", methods=["GET"])
 def get_tasks_for_date(user_id, date):
+    """Return all tasks for a user on a specific date as JSON."""
     tasks = data_manager.get_tasks_for_date(user_id, date)
     return jsonify([dict(task) for task in tasks]), 200
 
 
 @app.route("/add_goal", methods=["GET"])
 def add_goal_page():
+    """Render the add goal page."""
     return render_template("add_goal.html")
 
 
 @app.route("/add_goal", methods=["POST"])
 def add_goal_submit():
+    """Handle add goal form submission, generate and return AI weekly plan."""
     data = request.get_json()
     description = data.get("description")
     user_id = 1  # For demo: use test user (id=1)
@@ -107,21 +114,25 @@ Return only valid JSON.
 
 @app.route("/weekly_plan_view", methods=["GET"])
 def weekly_plan_view():
+    """Render the weekly plan view page."""
     return render_template("weekly_plan_view.html")
 
 
 @app.route("/tasks/today", methods=["GET"])
 def tasks_today():
+    """Render the daily tasks view page."""
     return render_template("tasks_today.html")
 
 
 @app.route("/goals_overview", methods=["GET"])
 def goals_overview():
+    """Render the goals overview page."""
     return render_template("goals_overview.html")
 
 
 @app.route("/api/goals/<int:goal_id>", methods=["DELETE"])
 def delete_goal(goal_id):
+    """Delete a goal by ID via API."""
     success = data_manager.delete_goal(goal_id)
     if success:
         return jsonify({"message": "Goal deleted"}), 200
@@ -131,6 +142,7 @@ def delete_goal(goal_id):
 
 @app.route("/api/goals/<int:goal_id>", methods=["PUT"])
 def update_goal(goal_id):
+    """Update a goal's description by ID via API."""
     data = request.get_json()
     new_description = data.get("new_description")
     if not new_description:
@@ -141,6 +153,7 @@ def update_goal(goal_id):
 
 @app.route("/api/weekly_plan/<int:goal_id>", methods=["GET"])
 def get_weekly_plan(goal_id):
+    """Return the weekly plan for a given goal as JSON."""
     # For demo: fetch goal description and return a static plan
     goal = data_manager.get_goal(goal_id) if hasattr(data_manager, 'get_goal') else None
     description = goal['description'] if goal else 'Goal'
@@ -163,6 +176,7 @@ def get_weekly_plan(goal_id):
 
 @app.route("/api/tasks/today/<int:goal_id>", methods=["GET"])
 def get_tasks_today(goal_id):
+    """Return today's tasks for a given goal as JSON, based on the weekly plan."""
     from datetime import datetime
     # Get today's day name (e.g., 'Monday')
     today = datetime.now().strftime('%A')
@@ -193,6 +207,7 @@ def get_tasks_today(goal_id):
 
 
 def main():
+    """Run the Flask development server."""
     app.run(debug=True)
 
 
