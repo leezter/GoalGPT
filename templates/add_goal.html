@@ -52,7 +52,28 @@
         const data = await response.json();
         let resultDiv = document.getElementById('plan-result');
         if (data.weekly_plan) {
-            resultDiv.innerHTML = `<h2>AI-Generated Weekly Plan</h2><pre>${data.weekly_plan}</pre>`;
+            // Render a user-friendly weekly plan
+            let html = `<h2>AI-Generated Weekly Plan</h2>`;
+            html += `<p><strong>Summary:</strong> ${data.weekly_plan.week_summary}</p>`;
+            html += '<table style="width:100%;border-collapse:collapse;margin-top:1em;">';
+            html += '<thead><tr><th style="text-align:left;padding:6px 8px;">Day</th><th style="text-align:left;padding:6px 8px;">Tasks</th></tr></thead><tbody>';
+            data.weekly_plan.days.forEach(dayObj => {
+                html += `<tr><td style="padding:6px 8px;vertical-align:top;"><strong>${dayObj.day}</strong></td><td style="padding:6px 8px;">`;
+                html += '<ul style="margin:0;padding-left:18px;">';
+                dayObj.tasks.forEach(task => {
+                    html += `<li>${task}</li>`;
+                });
+                html += '</ul></td></tr>';
+            });
+            html += '</tbody></table>';
+            // Add Today's Tasks button
+            html += `<button id="todays-tasks-btn" class="cta-btn" style="margin-top:1.5em;">Today's Tasks</button>`;
+            resultDiv.innerHTML = html;
+            // Store the new goal as selectedGoalId (simulate with 1 for demo, replace with real goal id if available)
+            localStorage.setItem('selectedGoalId', 1);
+            document.getElementById('todays-tasks-btn').onclick = function() {
+                window.location.href = '/tasks/today';
+            };
         } else if (data.error) {
             resultDiv.innerHTML = `<span style='color:red;'>${data.error}</span>`;
         } else {

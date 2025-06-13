@@ -29,16 +29,21 @@
         </footer>
     </div>
     <script>
-    // Example tasks for demo
-    let tasks = [
-        { id: 1, description: 'Review project goals', completed: false, ai: true },
-        { id: 2, description: 'Write 100 words', completed: false, ai: true },
-        { id: 3, description: 'Custom: Call Alice', completed: false, ai: false },
-        { id: 4, description: 'Custom: Buy groceries', completed: true, ai: false }
-    ];
-    let streakBroken = true; // Simulate a broken streak for demo
+    // Fetch today's tasks for the selected goal
+    const selectedGoalId = localStorage.getItem('selectedGoalId');
+    if (!selectedGoalId) {
+        document.getElementById('tasks-list').innerHTML = '<li>No goal selected.</li>';
+    } else {
+        fetch(`/api/tasks/today/${selectedGoalId}`)
+            .then(res => res.json())
+            .then(data => {
+                const tasks = data.tasks.map((desc, idx) => ({ id: idx + 1, description: desc, completed: false, ai: true }));
+                renderTasks(tasks);
+                document.getElementById('streak-comment').textContent = `Today's goal: ${data.goal} (${data.day})`;
+            });
+    }
 
-    function renderTasks() {
+    function renderTasks(tasks) {
         const ul = document.getElementById('tasks-list');
         ul.innerHTML = '';
         tasks.forEach(task => {
@@ -47,13 +52,12 @@
             li.innerHTML = `
                 <label>
                     <input type="checkbox" ${task.completed ? 'checked' : ''} data-id="${task.id}">
-                    ${task.description} ${task.ai ? '<span class="ai-task">[AI]</span>' : ''}
+                    ${task.description} <span class="ai-task">[AI]</span>
                 </label>
             `;
             ul.appendChild(li);
         });
     }
-    renderTasks();
 
     // Handle checkbox toggle
     document.getElementById('tasks-list').addEventListener('change', function(e) {
@@ -69,16 +73,13 @@
         e.preventDefault();
         const val = document.getElementById('quick-task-input').value.trim();
         if (val) {
-            tasks.push({ id: Date.now(), description: 'Custom: ' + val, completed: false, ai: false });
-            renderTasks();
+            const ul = document.getElementById('tasks-list');
+            const li = document.createElement('li');
+            li.innerHTML = `<label><input type="checkbox">Custom: ${val}</label>`;
+            ul.appendChild(li);
             document.getElementById('quick-task-input').value = '';
         }
     };
-
-    // Show AI comment if streak is broken
-    if (streakBroken) {
-        document.getElementById('streak-comment').textContent = "Don't worry! Every day is a new chance to build your streak.";
-    }
     </script>
     <style>
     .tasks-list { list-style: none; padding: 0; }

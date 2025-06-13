@@ -155,10 +155,41 @@ def get_weekly_plan(goal_id):
             {"day": "Thursday", "tasks": ["Apply knowledge"]},
             {"day": "Friday", "tasks": ["Reflect on progress"]},
             {"day": "Saturday", "tasks": ["Rest and recharge"]},
-            {"day": "Sunday", "tasks": ["Plan next week"]}
+            {"day": "Sunday", "tasks": ["Do nothing"]}
         ]
     }
     return jsonify({"weekly_plan": weekly_plan})
+
+
+@app.route("/api/tasks/today/<int:goal_id>", methods=["GET"])
+def get_tasks_today(goal_id):
+    from datetime import datetime
+    # Get today's day name (e.g., 'Monday')
+    today = datetime.now().strftime('%A')
+    # Fetch the weekly plan for the goal (simulate for now)
+    goal = data_manager.get_goal(goal_id) if hasattr(data_manager, 'get_goal') else None
+    description = goal['description'] if goal else 'Goal'
+    # TODO: In production, fetch the real plan from DB
+    weekly_plan = {
+        "goal_description": description,
+        "week_summary": f"This week focuses on making progress toward: {description}",
+        "days": [
+            {"day": "Monday", "tasks": ["Research topic"]},
+            {"day": "Tuesday", "tasks": ["Practice exercises"]},
+            {"day": "Wednesday", "tasks": ["Review notes"]},
+            {"day": "Thursday", "tasks": ["Apply knowledge"]},
+            {"day": "Friday", "tasks": ["Reflect on progress"]},
+            {"day": "Saturday", "tasks": ["Rest and recharge"]},
+            {"day": "Sunday", "tasks": ["Do nothing"]}
+        ]
+    }
+    # Find today's tasks
+    today_tasks = []
+    for day in weekly_plan['days']:
+        if day['day'] == today:
+            today_tasks = day['tasks']
+            break
+    return jsonify({"tasks": today_tasks, "goal": description, "day": today})
 
 
 def main():
