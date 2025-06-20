@@ -1,13 +1,15 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from flask import Flask, jsonify, request, render_template
 from datamanager.data_manager import SQLiteDataManager
 import os
 import openai
 
-
 app = Flask(__name__)
 data_manager = SQLiteDataManager("database.db")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-openai.api_key = OPENAI_API_KEY
+client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 
 @app.route("/")
@@ -59,57 +61,54 @@ def add_goal_page():
 @app.route("/add_goal", methods=["POST"])
 def add_goal_submit():
     """Handle add goal form submission, generate and return AI weekly plan."""
+    import json
+    from datetime import datetime, timedelta
     data = request.get_json()
     description = data.get("description")
     user_id = 1  # For demo: use test user (id=1)
     if not description:
         return jsonify({"error": "Description required"}), 400
-    data_manager.save_goal(user_id, {"description": description})
-    # Call OpenAI API to generate weekly plan
-    prompt = f"""
+    # Generate the plan
+    today = datetime.now().date()
+    days = [(today + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(7)]
+    plan_prompt = f"""
 Given the goal: '{description}', generate a weekly plan as a JSON object with the following structure:
 {{
   "week_summary": "A motivational or summary sentence for the week.",
   "days": [
-    {{ "day": "Monday", "tasks": ["Task 1", "Task 2"] }},
-    ... up to Sunday ...
+    {{ "date": "{days[0]}", "tasks": ["Task 1", "Task 2"] }},
+    ... up to {days[-1]} ...
   ]
 }}
-Return only valid JSON.
+Each day should use the actual date in YYYY-MM-DD format, starting from today ({days[0]}), and cover 7 consecutive days. Return only valid JSON.
 """
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "You are an expert productivity assistant."},
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": plan_prompt}
             ],
             temperature=0.7,
             max_tokens=500
         )
-        import json
-        # Extract JSON from the response
-        content = response['choices'][0]['message']['content']
-        # Try to find the first and last curly braces to extract JSON
+        content = response.choices[0].message.content
         start = content.find('{')
         end = content.rfind('}') + 1
         json_str = content[start:end]
         weekly_plan = json.loads(json_str)
     except Exception as e:
-        # Fallback to static plan if OpenAI fails
+        print("OpenAI API error:", e)
         weekly_plan = {
             "week_summary": f"This week focuses on making progress toward: {description}",
             "days": [
-                {"day": "Monday", "tasks": ["Research topic"]},
-                {"day": "Tuesday", "tasks": ["Practice exercises"]},
-                {"day": "Wednesday", "tasks": ["Review notes"]},
-                {"day": "Thursday", "tasks": ["Apply knowledge"]},
-                {"day": "Friday", "tasks": ["Reflect on progress"]},
-                {"day": "Saturday", "tasks": ["Rest and recharge"]},
-                {"day": "Sunday", "tasks": ["Plan next week"]}
+                {"date": (today + timedelta(days=i)).strftime('%Y-%m-%d'), "tasks": ["Task for day"]} for i in range(7)
             ]
         }
-    return jsonify({"weekly_plan": weekly_plan})
+    # Save the goal and plan
+    weekly_plan_json = json.dumps(weekly_plan)
+    goal_id = data_manager.save_goal(user_id, {"description": description}, weekly_plan_json=weekly_plan_json)
+    return jsonify({"weekly_plan": weekly_plan, "goal_id": goal_id})
 
 
 @app.route("/weekly_plan_view", methods=["GET"])
@@ -154,56 +153,35 @@ def update_goal(goal_id):
 @app.route("/api/weekly_plan/<int:goal_id>", methods=["GET"])
 def get_weekly_plan(goal_id):
     """Return the weekly plan for a given goal as JSON."""
-    # For demo: fetch goal description and return a static plan
-    goal = data_manager.get_goal(goal_id) if hasattr(data_manager, 'get_goal') else None
-    description = goal['description'] if goal else 'Goal'
-    # TODO: In production, fetch the real plan from DB
-    weekly_plan = {
-        "goal_description": description,
-        "week_summary": f"This week focuses on making progress toward: {description}",
-        "days": [
-            {"day": "Monday", "tasks": ["Research topic"]},
-            {"day": "Tuesday", "tasks": ["Practice exercises"]},
-            {"day": "Wednesday", "tasks": ["Review notes"]},
-            {"day": "Thursday", "tasks": ["Apply knowledge"]},
-            {"day": "Friday", "tasks": ["Reflect on progress"]},
-            {"day": "Saturday", "tasks": ["Rest and recharge"]},
-            {"day": "Sunday", "tasks": ["Do nothing"]}
-        ]
-    }
-    return jsonify({"weekly_plan": weekly_plan})
+    import json
+    plan_json = data_manager.get_weekly_plan_json(goal_id)
+    if plan_json:
+        weekly_plan = json.loads(plan_json)
+        description = data_manager.get_goal(goal_id).get('description', '')
+        weekly_plan['goal_description'] = description
+        return jsonify({"weekly_plan": weekly_plan})
+    else:
+        return jsonify({"error": "No weekly plan found for this goal."}), 404
 
 
 @app.route("/api/tasks/today/<int:goal_id>", methods=["GET"])
 def get_tasks_today(goal_id):
     """Return today's tasks for a given goal as JSON, based on the weekly plan."""
+    import json
     from datetime import datetime
-    # Get today's day name (e.g., 'Monday')
-    today = datetime.now().strftime('%A')
-    # Fetch the weekly plan for the goal (simulate for now)
-    goal = data_manager.get_goal(goal_id) if hasattr(data_manager, 'get_goal') else None
-    description = goal['description'] if goal else 'Goal'
-    # TODO: In production, fetch the real plan from DB
-    weekly_plan = {
-        "goal_description": description,
-        "week_summary": f"This week focuses on making progress toward: {description}",
-        "days": [
-            {"day": "Monday", "tasks": ["Research topic"]},
-            {"day": "Tuesday", "tasks": ["Practice exercises"]},
-            {"day": "Wednesday", "tasks": ["Review notes"]},
-            {"day": "Thursday", "tasks": ["Apply knowledge"]},
-            {"day": "Friday", "tasks": ["Reflect on progress"]},
-            {"day": "Saturday", "tasks": ["Rest and recharge"]},
-            {"day": "Sunday", "tasks": ["Do nothing"]}
-        ]
-    }
-    # Find today's tasks
-    today_tasks = []
-    for day in weekly_plan['days']:
-        if day['day'] == today:
-            today_tasks = day['tasks']
-            break
-    return jsonify({"tasks": today_tasks, "goal": description, "day": today})
+    today = datetime.now().strftime('%Y-%m-%d')
+    plan_json = data_manager.get_weekly_plan_json(goal_id)
+    if plan_json:
+        weekly_plan = json.loads(plan_json)
+        description = data_manager.get_goal(goal_id).get('description', '')
+        today_tasks = []
+        for day in weekly_plan['days']:
+            if day.get('date') == today:
+                today_tasks = day['tasks']
+                break
+        return jsonify({"tasks": today_tasks, "goal": description, "day": today})
+    else:
+        return jsonify({"tasks": [], "goal": "", "day": today, "error": "No weekly plan found for this goal."}), 404
 
 
 def main():

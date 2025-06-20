@@ -69,8 +69,10 @@
             // Add Today's Tasks button
             html += `<button id="todays-tasks-btn" class="cta-btn" style="margin-top:1.5em;">Today's Tasks</button>`;
             resultDiv.innerHTML = html;
-            // Store the new goal as selectedGoalId (simulate with 1 for demo, replace with real goal id if available)
-            localStorage.setItem('selectedGoalId', 1);
+            // Store the new goal id as selectedGoalId
+            if (data.goal_id) {
+                localStorage.setItem('selectedGoalId', data.goal_id);
+            }
             document.getElementById('todays-tasks-btn').onclick = function() {
                 window.location.href = '/tasks/today';
             };

@@ -67,9 +67,14 @@
                 const tbody = document.getElementById('tasks-body');
                 tbody.innerHTML = '';
                 plan.days.forEach(dayObj => {
+                    const dateStr = dayObj.date;
+                    // Optionally, format date to a more readable form
+                    const dateObj = new Date(dateStr);
+                    const options = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' };
+                    const displayDate = !isNaN(dateObj) ? dateObj.toLocaleDateString(undefined, options) : dateStr;
                     dayObj.tasks.forEach(task => {
                         const tr = document.createElement('tr');
-                        tr.innerHTML = `<td>${dayObj.day}</td><td>${task}</td>`;
+                        tr.innerHTML = `<td>${displayDate}</td><td>${task}</td>`;
                         tbody.appendChild(tr);
                     });
                 });

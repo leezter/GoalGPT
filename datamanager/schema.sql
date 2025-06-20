@@ -15,6 +15,10 @@ CREATE TABLE goals (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+-- Add a column to store the weekly plan JSON in the goals table
+ALTER TABLE goals ADD COLUMN weekly_plan_json TEXT;
+
+
 -- Create weekly_plans table
 CREATE TABLE weekly_plans (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

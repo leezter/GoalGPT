@@ -66,50 +66,71 @@ class SQLiteDataManager(AbstractDataManager):
         return result
 
 
-    def save_goal(self, user_id, goal):
+    def save_goal(self, user_id, goal, weekly_plan_json=None):
         """
-        Save a new goal for a user in the database.
+        Save a new goal for a user in the database, with optional weekly plan JSON.
         Args:
             user_id (int): The ID of the user.
             goal (dict): A dictionary containing goal details, must include 'description'.
+            weekly_plan_json (str, optional): JSON string of the weekly plan. Defaults to None.
         """
         description = goal['description']
         conn = self.get_connection()
         cur = conn.cursor()
-        cur.execute("INSERT INTO goals (user_id, description) VALUES (?, ?)", (user_id, description))
+        if weekly_plan_json is not None:
+            cur.execute("INSERT INTO goals (user_id, description, weekly_plan_json) VALUES (?, ?, ?)", (user_id, description, weekly_plan_json))
+        else:
+            cur.execute("INSERT INTO goals (user_id, description) VALUES (?, ?)", (user_id, description))
         conn.commit()
+        goal_id = cur.lastrowid
         conn.close()
+        return goal_id
 
 
-    def update_goal(self, goal_id, new_description):
+    def get_goal(self, goal_id):
         """
-        Update the description of an existing goal in the database.
-        Args:	
-            goal_id (int): The ID of the goal to update.
-            new_description (str): The new description for the goal.
-        """
-        conn = self.get_connection()
-        cur = conn.cursor()
-        cur.execute("UPDATE goals SET description = ? WHERE id = ?", (new_description, goal_id))
-        conn.commit()
-        conn.close()
-
-
-    def delete_goal(self, goal_id):
-        """
-        Delete a goal from the database by its ID.
+        Get a single goal by ID.
         Args:
-            goal_id (int): The ID of the goal to delete.
+            goal_id (int): The ID of the goal to retrieve.
         Returns:
-            bool: True if a goal was deleted, False otherwise.
+            dict: The goal record as a dictionary, or None if not found.
+        """
+        conn = self.get_connection()
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM goals WHERE id = ?", (goal_id,))
+        result = cur.fetchone()
+        conn.close()
+        return dict(result) if result else None
+
+
+    def save_weekly_plan(self, goal_id, week_start_date):
+        """
+        Save a new weekly plan for a specific goal starting from a given date.
+        Args:
+            goal_id (int): The ID of the goal.
+            week_start_date (str): The start date of the week (format: 'YYYY-MM-DD').
         """
         conn = self.get_connection()
         cur = conn.cursor()
-        cur.execute("DELETE FROM goals WHERE id = ?", (goal_id,))
+        cur.execute("INSERT INTO weekly_plans (goal_id, start_date) VALUES (?, ?)", 
+                    (goal_id, week_start_date))
         conn.commit()
-        deleted = cur.rowcount > 0
         conn.close()
-        return deleted
+
+
+    def save_weekly_plan_json(self, goal_id, weekly_plan_json):
+        """
+        Save or update the weekly plan JSON for a goal.
+        Args:
+            goal_id (int): The ID of the goal.
+            weekly_plan_json (str): JSON string of the weekly plan.
+        """
+        conn = self.get_connection()
+        cur = conn.cursor()
+        cur.execute("UPDATE goals SET weekly_plan_json = ? WHERE id = ?", (weekly_plan_json, goal_id))
+        conn.commit()
+        conn.close()
 
 
     def get_weekly_plan(self, goal_id, week_start_date):
@@ -130,19 +151,20 @@ class SQLiteDataManager(AbstractDataManager):
         return result
 
 
-    def save_weekly_plan(self, goal_id, week_start_date):
+    def get_weekly_plan_json(self, goal_id):
         """
-        Save a new weekly plan for a specific goal starting from a given date.
+        Get the weekly plan JSON for a goal.
         Args:
             goal_id (int): The ID of the goal.
-            week_start_date (str): The start date of the week (format: 'YYYY-MM-DD').
+        Returns:
+            str: JSON string of the weekly plan, or None if not found.
         """
         conn = self.get_connection()
         cur = conn.cursor()
-        cur.execute("INSERT INTO weekly_plans (goal_id, start_date) VALUES (?, ?)", 
-                    (goal_id, week_start_date))
-        conn.commit()
+        cur.execute("SELECT weekly_plan_json FROM goals WHERE id = ?", (goal_id,))
+        row = cur.fetchone()
         conn.close()
+        return row[0] if row and row[0] else None
 
 
     def get_tasks_for_date(self, user_id, target_date):
@@ -268,3 +290,33 @@ class SQLiteDataManager(AbstractDataManager):
         result = cur.fetchall()
         conn.close()
         return result
+
+
+    def update_goal(self, goal_id, new_description):
+        """
+        Update the description of an existing goal in the database.
+        Args:
+            goal_id (int): The ID of the goal to update.
+            new_description (str): The new description for the goal.
+        """
+        conn = self.get_connection()
+        cur = conn.cursor()
+        cur.execute("UPDATE goals SET description = ? WHERE id = ?", (new_description, goal_id))
+        conn.commit()
+        conn.close()
+
+    def delete_goal(self, goal_id):
+        """
+        Delete a goal from the database by its ID.
+        Args:
+            goal_id (int): The ID of the goal to delete.
+        Returns:
+            bool: True if the goal was deleted, False if not found.
+        """
+        conn = self.get_connection()
+        cur = conn.cursor()
+        cur.execute("DELETE FROM goals WHERE id = ?", (goal_id,))
+        conn.commit()
+        deleted = cur.rowcount > 0
+        conn.close()
+        return deleted
