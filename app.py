@@ -5,11 +5,16 @@ from flask import Flask, jsonify, request, render_template
 from datamanager.data_manager import SQLiteDataManager
 import os
 import openai
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+client = openai.OpenAI(api_key=OPENAI_API_KEY)
+
+import google.generativeai as genai
 
 app = Flask(__name__)
 data_manager = SQLiteDataManager("database.db")
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-client = openai.OpenAI(api_key=OPENAI_API_KEY)
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+# if GEMINI_API_KEY:
+#     genai.configure(api_key=GEMINI_API_KEY)
 
 
 @app.route("/")
@@ -71,18 +76,17 @@ def add_goal_submit():
     # Generate the plan
     today = datetime.now().date()
     days = [(today + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(7)]
+    # Zero-shot prompt: directly instruct the AI to generate a weekly plan for the user's goal
     plan_prompt = f"""
-Given the goal: '{description}', generate a weekly plan as a JSON object with the following structure:
-{{
-  "week_summary": "A motivational or summary sentence for the week.",
-  "days": [
-    {{ "date": "{days[0]}", "tasks": ["Task 1", "Task 2"] }},
-    ... up to {days[-1]} ...
-  ]
-}}
-Each day should use the actual date in YYYY-MM-DD format, starting from today ({days[0]}), and cover 7 consecutive days. Return only valid JSON.
+You are an expert productivity assistant. Generate a detailed weekly plan for the following goal:
+
+Goal: {description}
+
+Output:
+(Return only valid JSON. The plan should start from today ({days[0]}) and cover 7 consecutive days, using the actual date in YYYY-MM-DD format for each day. Each day's tasks should be specific and actionable. The output should be in the following format:\n\n{{\n  \"week_summary\": \"...\",\n  \"days\": [\n    {{ \"date\": \"YYYY-MM-DD\", \"tasks\": [\"task1\", \"task2\"] }},\n    ... (7 days total) ...\n  ]\n}})
 """
     try:
+        # OpenAI API code (uncomment and configure to use OpenAI instead of Gemini)
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -97,6 +101,27 @@ Each day should use the actual date in YYYY-MM-DD format, starting from today ({
         end = content.rfind('}') + 1
         json_str = content[start:end]
         weekly_plan = json.loads(json_str)
+        # Print token usage to terminal if available
+        if hasattr(response, 'usage') and response.usage:
+            print(f"OpenAI API token usage: prompt={response.usage.prompt_tokens}, completion={response.usage.completion_tokens}, total={response.usage.total_tokens}")
+        else:
+            print("OpenAI API token usage info not available in response.")
+        # Gemini API code
+        # try:
+        #     model = genai.GenerativeModel('models/gemini-1.5-pro-latest')
+        #     gemini_response = model.generate_content(plan_prompt)
+        # except Exception as model_error:
+        #     print('Primary Gemini model failed:', model_error)
+        #     print('Listing available Gemini models:')
+        #     for m in genai.list_models():
+        #         print(m)
+        #     raise model_error
+        # content = gemini_response.text
+        # start = content.find('{')
+        # end = content.rfind('}') + 1
+        # json_str = content[start:end]
+        # weekly_plan = json.loads(json_str)
+        # print("Gemini API response tokens used: (token usage info not available in Python SDK as of June 2025)")
     except Exception as e:
         print("OpenAI API error:", e)
         weekly_plan = {
