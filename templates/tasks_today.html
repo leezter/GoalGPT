@@ -1,105 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Today's Tasks - GoalGPT</title>
-    <link rel="stylesheet" href="/static/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GoalGPT - Today's Tasks</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <a href="/" class="home-btn">Home</a>
-            <h1>Today's Tasks</h1>
-            <p id="streak-comment" class="motivation"></p>
-        </header>
-        <main>
-            <section>
-                <ul id="tasks-list" class="tasks-list">
-                    <!-- Tasks will be inserted here -->
-                </ul>
-                <form id="quick-task-form" style="margin-top:2em;">
-                    <input type="text" id="quick-task-input" placeholder="Add a quick task..." required>
-                    <button type="submit" class="cta-btn">Add</button>
-                </form>
-            </section>
-        </main>
-        <footer>
-            <p>&copy; 2025 GoalGPT. All rights reserved.</p>
-        </footer>
-    </div>
-    <script>
-    // Fetch today's tasks for the selected goal
-    const selectedGoalId = localStorage.getItem('selectedGoalId');
-    if (!selectedGoalId) {
-        document.getElementById('tasks-list').innerHTML = '<li>No goal selected.</li>';
-    } else {
-        fetch(`/api/tasks/today/${selectedGoalId}`)
-            .then(res => res.json())
-            .then(data => {
-                const tasks = data.tasks.map((desc, idx) => ({ id: idx + 1, description: desc, completed: false, ai: true }));
-                renderTasks(tasks);
-                document.getElementById('streak-comment').textContent = `Today's goal: ${data.goal} (${data.day})`;
-            });
-    }
-
-    function renderTasks(tasks) {
-        const ul = document.getElementById('tasks-list');
-        ul.innerHTML = '';
-        tasks.forEach(task => {
-            const li = document.createElement('li');
-            li.className = task.completed ? 'completed' : '';
-            li.innerHTML = `
-                <label>
-                    <input type="checkbox" ${task.completed ? 'checked' : ''} data-id="${task.id}">
-                    ${task.description} <span class="ai-task">[AI]</span>
-                </label>
-            `;
-            ul.appendChild(li);
-        });
-    }
-
-    // Handle checkbox toggle
-    document.getElementById('tasks-list').addEventListener('change', function(e) {
-        if (e.target.type === 'checkbox') {
-            const id = parseInt(e.target.getAttribute('data-id'));
-            tasks = tasks.map(t => t.id === id ? { ...t, completed: e.target.checked } : t);
-            renderTasks();
-        }
-    });
-
-    // Handle quick task add
-    document.getElementById('quick-task-form').onsubmit = function(e) {
-        e.preventDefault();
-        const val = document.getElementById('quick-task-input').value.trim();
-        if (val) {
-            const ul = document.getElementById('tasks-list');
-            const li = document.createElement('li');
-            li.innerHTML = `<label><input type="checkbox">Custom: ${val}</label>`;
-            ul.appendChild(li);
-            document.getElementById('quick-task-input').value = '';
-        }
-    };
-    </script>
-    <style>
-    .tasks-list { list-style: none; padding: 0; }
-    .tasks-list li { margin: 12px 0; font-size: 1.1em; }
-    .tasks-list li.completed label { color: #aaa; text-decoration: line-through; }
-    .ai-task { color: #2d72d9; font-size: 0.9em; margin-left: 8px; }
-    .home-btn {
-        display: inline-block;
-        margin-bottom: 12px;
-        background: #e0e7ef;
-        color: #2d72d9;
-        border-radius: 6px;
-        text-decoration: none;
-        font-weight: 600;
-        padding: 8px 18px;
-        transition: background 0.2s;
-    }
-    .home-btn:hover {
-        background: #b6c6de;
-    }
-    </style>
+  <div class="dashboard-container">
+    <aside class="sidebar">
+      <div class="sidebar-icon active" title="Home">🏠</div>
+      <div class="sidebar-icon" title="AI Suggestions">🧠</div>
+      <div class="sidebar-icon" title="Calendar/Planner">🗓️</div>
+      <div class="sidebar-icon" title="Streak/Stats">📈</div>
+    </aside>
+    <main class="main-panel">
+      <div class="top-bar">
+        <div class="streak-widget">
+          <div class="avatar"></div>
+          <div class="streak-info">
+            <div class="streak-title">5 Day Streak</div>
+            <div class="streak-sub">5 Goals Completed</div>
+          </div>
+        </div>
+      </div>
+      <div class="tasks-section">
+        <h1 class="tasks-title">Today's Tasks</h1>
+        <div class="tasks-subtext">Today's goal: how can I become the dictator of the world? (2025-07-01)</div>
+        <div class="task-card">
+          <label class="checkbox-container">
+            <input type="checkbox">
+            <span class="checkmark"></span>
+          </label>
+          <div class="task-content">
+            <div class="task-title">Research historical dictators</div>
+            <div class="task-desc">Identify their rise to power, strategies, ad mistakes. Reflect on the ethical implications of their actions and the devastating impact on their people and countries.</div>
+          </div>
+          <span class="task-tag mindset">Mindset</span>
+        </div>
+        <div class="task-card">
+          <label class="checkbox-container">
+            <input type="checkbox">
+            <span class="checkmark"></span>
+          </label>
+          <div class="task-content">
+            <div class="task-title">Study political philosophy and theory</div>
+            <div class="task-desc">Learn about different forms of government, power dynamics, and …</div>
+          </div>
+          <span class="task-tag ai">AI</span>
+        </div>
+        <form class="task-input-bar">
+          <input type="text" placeholder="Add a quick task…" />
+          <button type="submit">Add</button>
+        </form>
+      </div>
+    </main>
+  </div>
 </body>
 </html>

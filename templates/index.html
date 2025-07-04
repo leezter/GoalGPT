@@ -1,62 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GoalGPT - Home</title>
-    <link rel="stylesheet" href="static/styles.css">
-    <style>
-    .home-btn {
-        display: inline-block;
-        margin-bottom: 12px;
-        background: #e0e7ef;
-        color: #2d72d9;
-        border-radius: 6px;
-        text-decoration: none;
-        font-weight: 600;
-        padding: 8px 18px;
-        transition: background 0.2s;
-    }
-    .home-btn:hover {
-        background: #b6c6de;
-    }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GoalGPT - Home</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div class="container">
-        <header>
-            <a href="/" class="home-btn">Home</a>
-            <h1>Welcome to GoalGPT</h1>
-            <p id="greeting">Hello, Test User!</p>
-            <p id="summary">Loading your summary...</p>
-        </header>
-        <main>
-            <section class="intro">
-                <button onclick="window.location.href='/add_goal'" class="cta-btn">Add New Goal</button>
-                <a href="/tasks/today" id="today-link" class="cta-btn secondary">View Today's Tasks</a>
-                <a href="/weekly_plan_view" class="cta-btn secondary">View Weekly Plan</a>
-                <a href="/goals_overview" class="cta-btn secondary">Goals Overview</a>
-            </section>
-        </main>
-        <footer>
-            <p>&copy; 2025 GoalGPT. All rights reserved.</p>
-        </footer>
-    </div>
-    <script>
-    // Simulate user greeting and summary (replace with real data from backend if needed)
-    const userName = 'Test User';
-    const today = new Date().toISOString().slice(0, 10);
-    document.getElementById('greeting').textContent = `Hello, ${userName}!`;
-    // Fetch today's tasks count from API
-    fetch(`/api/tasks/1/${today}`)
-        .then(res => res.json())
-        .then(tasks => {
-            document.getElementById('summary').textContent = `You have ${tasks.length} task${tasks.length === 1 ? '' : 's'} today.`;
-        })
-        .catch(() => {
-            document.getElementById('summary').textContent = 'Welcome to your dashboard!';
-        });
-    document.getElementById('today-link').href = '/tasks/today';
-    </script>
+<body class="home-bg">
+  <div class="dashboard-container">
+    <aside class="sidebar">
+      <div class="sidebar-icon active" title="Home">🏠</div>
+      <div class="sidebar-icon" title="Today's Tasks">✅</div>
+      <div class="sidebar-icon" title="Weekly Plan">🔁</div>
+      <div class="sidebar-icon" title="Goals Overview">📊</div>
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-icon help" title="Help">❓</div>
+    </aside>
+    <main class="main-panel home-panel">
+      <div class="top-bar">
+        <div class="streak-widget">
+          <div class="avatar"></div>
+          <div class="streak-info">
+            <div class="streak-title">5 Day Streak</div>
+            <div class="streak-sub">5 Goals Completed</div>
+          </div>
+        </div>
+      </div>
+      <div class="home-content">
+        <h1 class="home-title">Welcome to GoalGPT</h1>
+        <div class="home-sub">Hello, Test User!<br>You have 3 tasks today.</div>
+        <div class="home-btn-row">
+          <a href="/add_goal" class="home-btn primary">Add New Goal</a>
+          <a href="/tasks/today" class="home-btn secondary">View Today's Tasks</a>
+          <a href="/weekly_plan_view" class="home-btn secondary">View Weekly Plan</a>
+          <a href="/goals_overview" class="home-btn secondary">Goals Overview</a>
+        </div>
+      </div>
+    </main>
+  </div>
 </body>
 </html>

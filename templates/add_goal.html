@@ -1,87 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Goal - GoalGPT</title>
-    <link rel="stylesheet" href="/static/styles.css">
-    <style>
-    .home-btn {
-        display: inline-block;
-        margin-bottom: 12px;
-        background: #e0e7ef;
-        color: #2d72d9;
-        border-radius: 6px;
-        text-decoration: none;
-        font-weight: 600;
-        padding: 8px 18px;
-        transition: background 0.2s;
-    }
-    .home-btn:hover {
-        background: #b6c6de;
-    }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add a New Goal - GoalGPT</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div class="container">
-        <header>
-            <a href="/" class="home-btn">Home</a>
-            <h1>Add a New Goal</h1>
-        </header>
-        <main>
-            <form id="add-goal-form" method="POST" action="/add_goal">
-                <label for="description">Goal Name/Description</label>
-                <input type="text" id="description" name="description" required placeholder="e.g. Learn Python">
-                <button type="submit" class="cta-btn">Submit & Generate Weekly Plan</button>
-            </form>
-            <div id="plan-result" style="margin-top:2em;"></div>
-        </main>
-        <footer>
-            <p>&copy; 2025 GoalGPT. All rights reserved.</p>
-        </footer>
-    </div>
-    <script>
-    document.getElementById('add-goal-form').onsubmit = async function(e) {
-        e.preventDefault();
-        const desc = document.getElementById('description').value;
-        const response = await fetch('/add_goal', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ description: desc })
+<body class="home-bg">
+  <div class="dashboard-container">
+    <aside class="sidebar">
+      <div class="sidebar-icon" title="Home">🏠</div>
+      <div class="sidebar-icon" title="Today's Tasks">✅</div>
+      <div class="sidebar-icon" title="Weekly Plan">🔁</div>
+      <div class="sidebar-icon" title="Goals Overview">📋</div>
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-icon help" title="Help">❓</div>
+    </aside>
+    <main class="main-panel add-goal-panel">
+      <div class="add-goal-content">
+        <h1 class="add-goal-title">Add a New Goal</h1>
+        <form class="goal-input-form" id="goalForm">
+          <input type="text" id="goalInput" class="goal-input" placeholder="Goal Name / Description" required />
+          <button type="submit" class="goal-submit-btn">Submit & Generate Weekly Plan</button>
+        </form>
+        <div id="planCard" class="plan-card" style="display:none;">
+          <h2 class="plan-header">AI-Generated Weekly Plan</h2>
+          <div class="plan-summary"><span class="plan-summary-label">Summary:</span> <span id="planSummary">This week is focused on personal development, skill enhancement, and mindset improvement...</span></div>
+          <div class="plan-table">
+            <div class="plan-row plan-row-header">
+              <div class="plan-day">Day</div>
+              <div class="plan-tasks">Tasks</div>
+            </div>
+            <div id="planRows">
+              <!-- Plan rows will be inserted here -->
+            </div>
+          </div>
+          <a href="/tasks/today" class="view-tasks-btn">View Today's Tasks</a>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script>
+    document.getElementById('goalForm').onsubmit = async function(e) {
+      e.preventDefault();
+      const desc = document.getElementById('goalInput').value;
+      const planCard = document.getElementById('planCard');
+      planCard.style.display = 'none';
+      const res = await fetch('/add_goal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: desc })
+      });
+      const data = await res.json();
+      if (data.weekly_plan) {
+        document.getElementById('planSummary').textContent = data.weekly_plan.week_summary;
+        const planRows = document.getElementById('planRows');
+        planRows.innerHTML = '';
+        data.weekly_plan.days.forEach(day => {
+          const row = document.createElement('div');
+          row.className = 'plan-row';
+          const dayDiv = document.createElement('div');
+          dayDiv.className = 'plan-day';
+          dayDiv.textContent = new Date(day.date).toLocaleDateString(undefined, { weekday: 'long' });
+          const tasksDiv = document.createElement('div');
+          tasksDiv.className = 'plan-tasks';
+          const ul = document.createElement('ul');
+          day.tasks.forEach(task => {
+            const li = document.createElement('li');
+            li.textContent = task;
+            ul.appendChild(li);
+          });
+          tasksDiv.appendChild(ul);
+          row.appendChild(dayDiv);
+          row.appendChild(tasksDiv);
+          planRows.appendChild(row);
         });
-        const data = await response.json();
-        let resultDiv = document.getElementById('plan-result');
-        if (data.weekly_plan) {
-            // Render a user-friendly weekly plan
-            let html = `<h2>AI-Generated Weekly Plan</h2>`;
-            html += `<p><strong>Summary:</strong> ${data.weekly_plan.week_summary}</p>`;
-            html += '<table style="width:100%;border-collapse:collapse;margin-top:1em;">';
-            html += '<thead><tr><th style="text-align:left;padding:6px 8px;">Day</th><th style="text-align:left;padding:6px 8px;">Tasks</th></tr></thead><tbody>';
-            data.weekly_plan.days.forEach(dayObj => {
-                html += `<tr><td style="padding:6px 8px;vertical-align:top;"><strong>${dayObj.day}</strong></td><td style="padding:6px 8px;">`;
-                html += '<ul style="margin:0;padding-left:18px;">';
-                dayObj.tasks.forEach(task => {
-                    html += `<li>${task}</li>`;
-                });
-                html += '</ul></td></tr>';
-            });
-            html += '</tbody></table>';
-            // Add Today's Tasks button
-            html += `<button id="todays-tasks-btn" class="cta-btn" style="margin-top:1.5em;">Today's Tasks</button>`;
-            resultDiv.innerHTML = html;
-            // Store the new goal id as selectedGoalId
-            if (data.goal_id) {
-                localStorage.setItem('selectedGoalId', data.goal_id);
-            }
-            document.getElementById('todays-tasks-btn').onclick = function() {
-                window.location.href = '/tasks/today';
-            };
-        } else if (data.error) {
-            resultDiv.innerHTML = `<span style='color:red;'>${data.error}</span>`;
-        } else {
-            resultDiv.innerHTML = '<span style="color:red;">Unknown error.</span>';
-        }
+        planCard.style.display = 'block';
+        planCard.classList.add('fade-in');
+      }
     };
-    </script>
+  </script>
 </body>
 </html>
