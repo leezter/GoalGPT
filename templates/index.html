@@ -10,12 +10,12 @@
 <body class="home-bg">
   <div class="dashboard-container">
     <aside class="sidebar">
-      <div class="sidebar-icon active" title="Home">🏠</div>
-      <div class="sidebar-icon" title="Today's Tasks">✅</div>
-      <div class="sidebar-icon" title="Weekly Plan">🔁</div>
-      <div class="sidebar-icon" title="Goals Overview">📊</div>
+      <button class="sidebar-icon active" title="Home" aria-current="page">🏠</button>
+      <button class="sidebar-icon" title="Today's Tasks" onclick="location.href='/tasks/today'">✅</button>
+      <button class="sidebar-icon" title="Weekly Plan" onclick="location.href='/weekly_plan_view'">📅</button>
+      <button class="sidebar-icon" title="Goals Overview" onclick="location.href='/goals_overview'">📈</button>
       <div class="sidebar-spacer"></div>
-      <div class="sidebar-icon help" title="Help">❓</div>
+      <button class="sidebar-icon help" title="Help">❓</button>
     </aside>
     <main class="main-panel home-panel">
       <div class="top-bar">
@@ -28,13 +28,18 @@
         </div>
       </div>
       <div class="home-content">
+        <div class="home-tagline" style="max-width: 700px; margin: 0 auto 24px auto; font-size: 1.18rem; color: #B6B6D6; font-weight: 500; line-height: 1.5;">
+          Turn big goals into daily wins. GoalGPT helps you plan smarter, stay focused, and crush your goals one task at a time — with a little help from AI.
+        </div>
         <h1 class="home-title">Welcome to GoalGPT</h1>
         <div class="home-sub">Hello, Test User!<br>You have 3 tasks today.</div>
-        <div class="home-btn-row">
-          <a href="/add_goal" class="home-btn primary">Add New Goal</a>
-          <a href="/tasks/today" class="home-btn secondary">View Today's Tasks</a>
-          <a href="/weekly_plan_view" class="home-btn secondary">View Weekly Plan</a>
-          <a href="/goals_overview" class="home-btn secondary">Goals Overview</a>
+        <div class="home-btn-row" style="flex-direction: column; align-items: center; gap: 28px;">
+          <a href="/add_goal" class="home-btn primary home-btn-large" style="margin-bottom: 18px; min-width: 260px; font-size: 1.35rem; padding: 22px 48px;">Add New Goal</a>
+          <div style="display: flex; gap: 22px; justify-content: center;">
+            <a href="/tasks/today" class="home-btn secondary">View Today's Tasks</a>
+            <a href="/weekly_plan_view" class="home-btn secondary">View Weekly Plan</a>
+            <a href="/goals_overview" class="home-btn secondary">Goals Overview</a>
+          </div>
         </div>
       </div>
     </main>

@@ -11,12 +11,22 @@
   <div class="dashboard-container">
     <!-- Sidebar -->
     <aside class="sidebar">
-      <div class="sidebar-icon" title="Home" onclick="location.href='/'">🏠</div>
-      <div class="sidebar-icon" title="Today's Tasks" onclick="location.href='/tasks/today'">✅</div>
-      <div class="sidebar-icon active" title="Weekly Plan" onclick="location.href='/weekly_plan_view'">📅</div>
-      <div class="sidebar-icon" title="Goals Overview" onclick="location.href='/goals_overview'">📈</div>
+      <div class="sidebar-icon" title="Home">
+        <button type="button" onclick="location.href='/'">🏠</button>
+      </div>
+      <div class="sidebar-icon" title="Today's Tasks">
+        <button type="button" onclick="location.href='/tasks/today'">✅</button>
+      </div>
+      <div class="sidebar-icon active" title="Weekly Plan">
+        <button type="button" aria-disabled="true" aria-current="page" class="sidebar-home-disabled">📅</button>
+      </div>
+      <div class="sidebar-icon" title="Goals Overview">
+        <button type="button" onclick="location.href='/goals_overview'">📈</button>
+      </div>
       <div class="sidebar-spacer"></div>
-      <div class="sidebar-icon help" title="Help">❓</div>
+      <div class="sidebar-icon help" title="Help">
+        <button type="button">❓</button>
+      </div>
     </aside>
     <!-- Main Content -->
     <main class="main-panel">
@@ -33,7 +43,6 @@
       <section class="tasks-section">
         <h1 class="tasks-title">Weekly Plan</h1>
         <p class="tasks-subtext" style="color:#999;max-width:700px;">
-          This plan is a hypothetical exercise for entertainment purposes only and does not endorse or encourage any illegal or harmful activities. Becoming a dictator is immoral and destructive. This response is intended to fulfill the user's request for a plan while highlighting the absurdity and negative consequences.
         </p>
         <div id="goalBlock">
           <h2 class="plan-header" id="goalTitle">Goal: </h2>

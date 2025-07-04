@@ -8,21 +8,31 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body class="home-bg">
-  <div class="dashboard-container">
+  <div class="dashboard-container responsive-dashboard">
     <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="sidebar-icon" title="Home" onclick="location.href='/'">🏠</div>
-      <div class="sidebar-icon" title="Today's Tasks" onclick="location.href='/tasks/today'">✅</div>
-      <div class="sidebar-icon" title="Weekly Plan" onclick="location.href='/weekly_plan_view'">📅</div>
-      <div class="sidebar-icon active" style="background:#7C3AED;box-shadow:0 0 12px #7C3AED; color:#fff;" title="Goals Overview" onclick="location.href='/goals_overview'">📈</div>
+    <aside class="sidebar responsive-sidebar">
+      <div class="sidebar-icon" title="Home">
+        <button type="button" onclick="location.href='/'">🏠</button>
+      </div>
+      <div class="sidebar-icon" title="Today's Tasks">
+        <button type="button" onclick="location.href='/tasks/today'">✅</button>
+      </div>
+      <div class="sidebar-icon" title="Weekly Plan">
+        <button type="button" onclick="location.href='/weekly_plan_view'">📅</button>
+      </div>
+      <div class="sidebar-icon active" title="Goals Overview">
+        <button type="button" aria-disabled="true" aria-current="page" class="sidebar-home-disabled">📈</button>
+      </div>
       <div class="sidebar-spacer"></div>
-      <div class="sidebar-icon help" title="Help">❓</div>
+      <div class="sidebar-icon help" title="Help">
+        <button type="button">❓</button>
+      </div>
     </aside>
     <!-- Main Content -->
-    <main class="main-panel">
+    <main class="main-panel responsive-main-panel">
       <!-- Top-Right User Widget -->
-      <div class="top-bar">
-        <div class="streak-widget" style="background:#1E1E1E; color:#CCC; border-radius:14px; box-shadow:0 2px 8px rgba(0,0,0,0.18); padding:12px 22px 12px 12px; min-width:180px; display:flex; align-items:center;">
+      <div class="top-bar responsive-top-bar">
+        <div class="streak-widget responsive-streak-widget" style="background:#1E1E1E; color:#CCC; border-radius:14px; box-shadow:0 2px 8px rgba(0,0,0,0.18); padding:12px 22px 12px 12px; min-width:180px; display:flex; align-items:center;">
           <div class="streak-info">
             <span class="streak-title" style="color:#fff;font-weight:700;">5 Day Streak</span>
             <span class="streak-sub" style="color:#CCC;">5 Goals Completed</span>
@@ -30,10 +40,10 @@
           <div class="avatar" style="margin-left:16px;"><img src="https://api.dicebear.com/7.x/miniavs/svg?seed=user" alt="avatar" style="width:32px;height:32px;border-radius:50%;"></div>
         </div>
       </div>
-      <section class="tasks-section" style="max-width:900px;margin:0 auto;margin-top:60px;">
-        <h1 class="tasks-title" style="font-size:2.5rem;font-weight:800;color:#fff;">Your Goals</h1>
-        <div class="plan-card" style="background:#181A1A;box-shadow:none;padding:0;margin-top:32px;">
-          <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr;align-items:center;padding:24px 32px 12px 32px;color:#CCC;font-weight:600;font-size:1.1rem;border-bottom:1.5px solid #232323;">
+      <section class="tasks-section responsive-tasks-section" style="max-width:900px;margin:0 auto;margin-top:60px;">
+        <h1 class="tasks-title responsive-tasks-title" style="font-size:2.5rem;font-weight:800;color:#fff;">Your Goals</h1>
+        <div class="plan-card responsive-plan-card" style="background:#181A1A;box-shadow:none;padding:0;margin-top:32px;overflow-x:auto;">
+          <div class="goals-table-header" style="display:grid;grid-template-columns:1.5fr 1fr 1fr;align-items:center;padding:24px 32px 12px 32px;color:#CCC;font-weight:600;font-size:1.1rem;border-bottom:1.5px solid #232323;min-width:500px;">
             <div>Goal</div>
             <div>Progress</div>
             <div>Actions</div>
@@ -57,6 +67,7 @@
         // Fake progress for demo, replace with real value if available
         const progress = Math.floor(Math.random() * 80) + 7;
         const row = document.createElement('div');
+        row.className = 'goals-table-row';
         row.style.display = 'grid';
         row.style.gridTemplateColumns = '1.5fr 1fr 1fr';
         row.style.alignItems = 'center';
@@ -65,14 +76,14 @@
         row.style.color = '#fff';
         row.style.borderBottom = '1px solid #232323';
         row.innerHTML = `
-          <div style="font-size:1.08rem;">${goal.description}</div>
+          <div style="font-size:1.08rem;word-break:break-word;">${goal.description}</div>
           <div style="display:flex;align-items:center;gap:12px;">
             <div style="flex:1;height:10px;background:#232323;border-radius:8px;overflow:hidden;">
               <div style="height:100%;background:#2563eb;border-radius:8px;width:${progress}%"></div>
             </div>
             <span style="font-size:1.05rem;color:#CCC;min-width:36px;text-align:right;">${progress}%</span>
           </div>
-          <div style="display:flex;gap:10px;align-items:center;">
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
             <a href="#" onclick="localStorage.setItem('selectedGoalId',${goal.id});location.href='/weekly_plan_view'" style="color:#7C3AED;font-weight:600;text-decoration:underline;font-size:1.05rem;">View Plan</a>
             <button style="background:#7C3AED22;color:#7C3AED;border:none;border-radius:8px;padding:7px 18px;font-weight:600;cursor:pointer;">Edit</button>
             <button onclick="deleteGoal(${goal.id})" style="background:#F87171;color:#fff;border:none;border-radius:8px;padding:7px 18px;font-weight:600;cursor:pointer;">Delete</button>

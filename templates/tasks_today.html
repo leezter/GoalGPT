@@ -10,10 +10,22 @@
 <body>
   <div class="dashboard-container">
     <aside class="sidebar">
-      <div class="sidebar-icon active" title="Home">🏠</div>
-      <div class="sidebar-icon" title="AI Suggestions">🧠</div>
-      <div class="sidebar-icon" title="Calendar/Planner">🗓️</div>
-      <div class="sidebar-icon" title="Streak/Stats">📈</div>
+      <div class="sidebar-icon" title="Home">
+        <button type="button" onclick="location.href='/'">🏠</button>
+      </div>
+      <div class="sidebar-icon active" title="Today's Tasks">
+        <button type="button" aria-disabled="true" aria-current="page" class="sidebar-home-disabled">✅</button>
+      </div>
+      <div class="sidebar-icon" title="Weekly Plan">
+        <button type="button" onclick="location.href='/weekly_plan_view'">📅</button>
+      </div>
+      <div class="sidebar-icon" title="Goals Overview">
+        <button type="button" onclick="location.href='/goals_overview'">📈</button>
+      </div>
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-icon help" title="Help">
+        <button type="button">❓</button>
+      </div>
     </aside>
     <main class="main-panel">
       <div class="top-bar">

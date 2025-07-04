@@ -10,18 +10,28 @@
 <body class="home-bg">
   <div class="dashboard-container">
     <aside class="sidebar">
-      <div class="sidebar-icon" title="Home">🏠</div>
-      <div class="sidebar-icon" title="Today's Tasks">✅</div>
-      <div class="sidebar-icon" title="Weekly Plan">🔁</div>
-      <div class="sidebar-icon" title="Goals Overview">📋</div>
+      <div class="sidebar-icon" title="Home">
+        <button type="button" onclick="location.href='/'">🏠</button>
+      </div>
+      <div class="sidebar-icon" title="Today's Tasks">
+        <button type="button" onclick="location.href='/tasks/today'">✅</button>
+      </div>
+      <div class="sidebar-icon" title="Weekly Plan">
+        <button type="button" onclick="location.href='/weekly_plan_view'">📅</button>
+      </div>
+      <div class="sidebar-icon" title="Goals Overview">
+        <button type="button" onclick="location.href='/goals_overview'">📈</button>
+      </div>
       <div class="sidebar-spacer"></div>
-      <div class="sidebar-icon help" title="Help">❓</div>
+      <div class="sidebar-icon help" title="Help">
+        <button type="button">❓</button>
+      </div>
     </aside>
     <main class="main-panel add-goal-panel">
       <div class="add-goal-content">
         <h1 class="add-goal-title">Add a New Goal</h1>
         <form class="goal-input-form" id="goalForm">
-          <input type="text" id="goalInput" class="goal-input" placeholder="Goal Name / Description" required />
+          <input type="text" id="goalInput" class="goal-input" placeholder="Goal Name / Description" required style="min-width: 340px; width: 100%; max-width: 520px;" />
           <button type="submit" class="goal-submit-btn">Submit & Generate Weekly Plan</button>
         </form>
         <div id="planCard" class="plan-card" style="display:none;">

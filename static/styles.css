@@ -1,4 +1,8 @@
 /* styles.css - Modern dark dashboard for GoalGPT */
+* {
+  box-sizing: border-box;
+}
+
 body {
   background: #121212;
   color: #F5F5F5;
@@ -10,7 +14,10 @@ body {
 .dashboard-container {
   display: flex;
   min-height: 100vh;
-  aspect-ratio: 16/9;
+  width: 100vw;
+  max-width: 100vw;
+  margin: 0 auto;
+  overflow-x: hidden;
 }
 
 .sidebar {
@@ -25,18 +32,62 @@ body {
 }
 
 .sidebar-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
   font-size: 1.7rem;
   color: #BBBBBB;
-  background: none;
+  background: #232136; /* Always show button background */
   border-radius: 16px;
-  padding: 12px;
-  margin-bottom: 10px;
+  box-shadow: 0 0 8px #7C3AED22; /* Subtle shadow for all icons */
+  padding: 12px 0;
   transition: box-shadow 0.2s, color 0.2s, background 0.2s;
+  min-width: 44px;
+  min-height: 44px;
   cursor: pointer;
+}
+
+/* Make the anchor/button inside sidebar-icon fill the area and be fully clickable */
+.sidebar-icon > a, .sidebar-icon > button {
+  display: block;
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-width: 44px;
+  min-height: 44px;
+  text-decoration: none;
+  color: inherit;
+  background: none;
+  border: none;
+  border-radius: inherit;
+  outline: none;
+}
+
+/* Ensure SVG or icon inside fills the clickable area */
+.sidebar-icon > a > svg, .sidebar-icon > button > svg {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-icon > a:focus-visible, .sidebar-icon > button:focus-visible {
+  outline: 2.5px solid #7C3AED;
+  outline-offset: 2px;
+  background: #232136;
+}
+
+/* Remove pointer on Home if not a link */
+.sidebar-icon.active[title="Home"] > a, .sidebar-icon.active[title="Home"] > button {
+  pointer-events: none;
+  cursor: default;
 }
 
 .sidebar-icon.active, .sidebar-icon:hover {
   color: #7C3AED;
+  /* Keep background and box-shadow same as default for button effect */
   background: #232136;
   box-shadow: 0 0 8px #7C3AED88;
 }
@@ -47,6 +98,10 @@ body {
   flex-direction: column;
   padding: 40px 0 0 0;
   position: relative;
+  width: 100%;
+  max-width: 100vw;
+  margin: 0 auto;
+  overflow-x: hidden;
 }
 
 .top-bar {
@@ -55,7 +110,7 @@ body {
   right: 40px;
   display: flex;
   justify-content: flex-end;
-  width: 100%;
+  width: 95%;
   z-index: 2;
 }
 
@@ -97,11 +152,12 @@ body {
 }
 
 .tasks-section {
-  max-width: 600px;
+  max-width: 900px;
+  width: 100%;
   margin: 0 auto;
   margin-top: 60px;
   padding-bottom: 60px;
-  width: 100%;
+  box-sizing: border-box;
 }
 
 .tasks-title {
@@ -374,11 +430,13 @@ body {
   box-shadow: 0 2px 12px rgba(0,0,0,0.18);
   padding: 36px 32px;
   margin-top: 36px;
-  max-width: 700px;
+  max-width: 100%;
   width: 100%;
-  color: #F5F5F5;
-  animation: fadeIn 0.7s;
+  margin: 0 auto;
+  box-sizing: border-box;
+  overflow-x: auto;
 }
+
 .plan-header {
   font-size: 1.35rem;
   font-weight: 700;
@@ -451,84 +509,247 @@ body {
   from { opacity: 0; transform: translateY(30px); }
   to { opacity: 1; transform: translateY(0); }
 }
+/* --- Responsive Goals Overview Table & Actions --- */
+.goals-overview-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #181818;
+  border-radius: 1.2em;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+  margin-bottom: 32px;
+}
+.goals-overview-table th, .goals-overview-table td {
+  padding: 18px 20px;
+  text-align: left;
+  font-size: 1.08rem;
+}
+.goals-overview-table th {
+  background: #232136;
+  color: #7C3AED;
+  font-weight: 700;
+  border-bottom: 2px solid #232323;
+}
+.goals-overview-table td {
+  background: #181818;
+  color: #F5F5F5;
+  border-bottom: 1px solid #232323;
+}
+.goals-overview-table tr:last-child td {
+  border-bottom: none;
+}
+.goal-progress-bar {
+  width: 100%;
+  height: 16px;
+  background: #232323;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+.goal-progress-bar-inner {
+  height: 100%;
+  background: linear-gradient(90deg, #7C3AED 60%, #3B82F6 100%);
+  border-radius: 8px;
+  transition: width 0.4s;
+}
+.goals-action-btn {
+  background: #232323;
+  color: #7C3AED;
+  border: 1.5px solid #7C3AED;
+  border-radius: 1em;
+  padding: 10px 22px;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-right: 8px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.13);
+}
+.goals-action-btn:last-child {
+  margin-right: 0;
+}
+.goals-action-btn:hover {
+  background: #7C3AED;
+  color: #fff;
+  box-shadow: 0 0 8px #7C3AED88;
+}
+
+/* Responsive: Table horizontal scroll and stacking on mobile */
 @media (max-width: 900px) {
-  .dashboard-container {
-    flex-direction: column;
-    aspect-ratio: unset;
+  .dashboard-container, .main-panel, .tasks-section, .add-goal-content, .plan-card {
+    max-width: 100vw;
+    width: auto;
+    margin-left: 8px;
+    margin-right: 8px;
+    box-sizing: border-box;
   }
-  .main-panel {
-    padding: 20px 0 0 0;
-  }
-  .tasks-section {
-    margin-top: 30px;
-    padding-bottom: 30px;
-  }
-  .top-bar {
-    right: 10px;
-    top: 10px;
-  }
-  .home-content {
-    margin-top: 30px;
-  }
-  .home-title {
-    font-size: 1.5rem;
-  }
-  .home-btn-row {
-    gap: 12px;
-  }
-  .add-goal-content {
-    padding-left: 0;
-    margin-top: 30px;
-  }
-  .plan-card {
-    padding: 24px 8px;
-  }
-  .goal-input-form {
-    flex-direction: column;
-    gap: 12px;
+  .goals-overview-table th, .goals-overview-table td {
+    padding: 12px 10px;
+    font-size: 0.98rem;
   }
 }
+@media (max-width: 700px) {
+  .goal-input-form {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+  .goal-input-form input[type="text"] {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+  .goal-input-form button {
+    margin-left: 0 !important;
+    width: 100%;
+    max-width: 100%;
+  }
+  .goals-overview-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100vw;
+    margin-left: -16px;
+    margin-right: -16px;
+  }
+  .goals-overview-table {
+    min-width: 600px;
+    font-size: 0.95rem;
+  }
+}
+@media (max-width: 500px) {
+  .goals-overview-table th, .goals-overview-table td {
+    padding: 8px 6px;
+    font-size: 0.92rem;
+  }
+  .goals-action-btn {
+    padding: 8px 12px;
+    font-size: 0.92rem;
+    min-width: 80px;
+  }
+}
+
+/* Sidebar: already handled for mobile, but ensure touch targets */
 @media (max-width: 600px) {
   .sidebar {
-    flex-direction: row;
-    width: 100vw;
     height: 60px;
-    padding: 0 0 0 0;
+    min-width: unset;
+    max-width: 100vw;
+    padding: 0;
     gap: 0;
-    justify-content: space-around;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   }
   .sidebar-icon {
-    margin-bottom: 0;
-    font-size: 1.3rem;
+    min-width: 44px;
+    min-height: 44px;
     padding: 8px;
+    font-size: 1.2rem;
   }
-  .main-panel {
-    padding: 0;
+}
+
+/* Top bar and widgets: wrap on small screens */
+@media (max-width: 600px) {
+  .top-bar {
+    flex-wrap: wrap;
+    gap: 8px;
+    right: 0;
+    top: 0;
+    padding: 4px 2px;
   }
-  .tasks-section {
+  .streak-widget {
+    min-width: 120px;
+    padding: 8px 10px 8px 8px;
+    font-size: 0.95rem;
+  }
+  .avatar {
+    width: 28px;
+    height: 28px;
+    margin-right: 8px;
+  }
+}
+
+/* General: make all buttons and inputs more touch-friendly */
+@media (max-width: 600px) {
+  button, .goals-action-btn, .goal-submit-btn, .home-btn {
+    min-height: 44px;
+    min-width: 44px;
+    font-size: 1rem;
+    padding: 10px 12px;
+  }
+}
+
+/* Ensure main-panel and content have no overflow on mobile */
+@media (max-width: 600px) {
+  .main-panel, .tasks-section, .add-goal-content, .plan-card {
+    overflow-x: auto;
+    width: 100vw;
+    box-sizing: border-box;
+  }
+}
+
+/* Strict responsive: always add margin on small screens, prevent overflow */
+@media (max-width: 900px) {
+  .dashboard-container, .main-panel, .tasks-section, .add-goal-content, .plan-card {
     max-width: 100vw;
-    padding: 0 8px;
+    width: auto;
+    margin-left: 8px;
+    margin-right: 8px;
+    box-sizing: border-box;
   }
-  .home-content {
-    padding: 0 8px;
+}
+@media (max-width: 700px), (max-aspect-ratio: 1/1) {
+  .dashboard-container, .main-panel, .tasks-section, .add-goal-content, .plan-card {
+    max-width: 100vw;
+    width: auto;
+    margin-left: 8px;
+    margin-right: 8px;
+    box-sizing: border-box;
   }
-  .home-btn {
-    padding: 12px 16px;
-    font-size: 1rem;
+  .sidebar {
+    margin-left: 0;
+    margin-right: 0;
   }
-  .add-goal-content {
-    padding: 0 8px;
+}
+@media (max-width: 500px) {
+  .dashboard-container, .main-panel, .tasks-section, .add-goal-content, .plan-card {
+    margin-left: 4px;
+    margin-right: 4px;
   }
-  .plan-card {
-    padding: 12px 2px;
-  }
-  .goal-input {
-    padding: 12px 10px;
-    font-size: 1rem;
-  }
-  .goal-submit-btn {
-    padding: 12px 10px;
-    font-size: 1rem;
-  }
+}
+
+/* Prevent horizontal scroll except for tables */
+.dashboard-container, .main-panel, .tasks-section, .add-goal-content, .plan-card {
+  overflow-x: visible !important;
+}
+.goals-overview-table-wrapper, .goals-overview-table {
+  overflow-x: auto !important;
+}
+
+/* --- New Styles for Sidebar Icon Button --- */
+.sidebar-icon > button,
+.sidebar-home-disabled {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-width: 44px;
+  min-height: 44px;
+  font-size: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  margin: 0;
+  padding: 0;
+  border-radius: inherit;
+  outline: none;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  flex: 1 1 auto;
+  box-sizing: border-box;
+}
+.sidebar-home-disabled {
+  pointer-events: none;
+  cursor: default;
+  opacity: 1;
 }
