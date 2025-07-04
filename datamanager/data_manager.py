@@ -51,7 +51,7 @@ class SQLiteDataManager(AbstractDataManager):
 
     def get_goals(self, user_id):
         """
-        Retrieve all goals for a user from the database.
+        Retrieve all goals for a user from the database, sorted by id DESC (most recent first).
         Args:
             user_id (int): The ID of the user.
         Returns:
@@ -60,7 +60,7 @@ class SQLiteDataManager(AbstractDataManager):
         conn = self.get_connection()
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
-        cur.execute("SELECT * FROM goals WHERE user_id = ?", (user_id,))
+        cur.execute("SELECT * FROM goals WHERE user_id = ? ORDER BY id DESC", (user_id,))
         result = cur.fetchall()
         conn.close()
         return result

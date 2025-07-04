@@ -1,93 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weekly Plan - GoalGPT</title>
-    <link rel="stylesheet" href="/static/styles.css">
-    <style>
-    .home-btn {
-        display: inline-block;
-        margin-bottom: 12px;
-        background: #e0e7ef;
-        color: #2d72d9;
-        border-radius: 6px;
-        text-decoration: none;
-        font-weight: 600;
-        padding: 8px 18px;
-        transition: background 0.2s;
-    }
-    .home-btn:hover {
-        background: #b6c6de;
-    }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weekly Plan - GoalGPT</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div class="container">
-        <header>
-            <a href="/" class="home-btn">Home</a>
-            <h1>Weekly Plan</h1>
-            <p id="motivation" class="motivation">"Success is the sum of small efforts, repeated day in and day out."</p>
-        </header>
-        <main>
-            <section>
-                <h2 id="goal-title">Goal: </h2>
-                <table class="weekly-table">
-                    <thead>
-                        <tr>
-                            <th>Day</th>
-                            <th>Task</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tasks-body">
-                        <!-- AI-generated tasks will be inserted here -->
-                    </tbody>
-                </table>
-                <button id="add-reminder" class="cta-btn secondary" style="margin-top:1em;">Add Reminder</button>
-            </section>
-        </main>
-        <footer>
-            <p>&copy; 2025 GoalGPT. All rights reserved.</p>
-        </footer>
-    </div>
-    <script>
-    // Instead of creating a new goal, fetch the plan for an existing goal
-    // Assume the selected goal's ID is stored in localStorage as 'selectedGoalId'
-    const selectedGoalId = localStorage.getItem('selectedGoalId');
-    if (!selectedGoalId) {
-        document.getElementById('goal-title').textContent = 'No goal selected.';
-        document.getElementById('motivation').textContent = '';
-    } else {
-        fetch(`/api/weekly_plan/${selectedGoalId}`)
-            .then(res => res.json())
-            .then(data => {
-                const plan = data.weekly_plan;
-                document.getElementById('goal-title').textContent = `Goal: ${plan.goal_description || ''}`;
-                document.getElementById('motivation').textContent = plan.week_summary;
-                const tbody = document.getElementById('tasks-body');
-                tbody.innerHTML = '';
-                plan.days.forEach(dayObj => {
-                    const dateStr = dayObj.date;
-                    // Optionally, format date to a more readable form
-                    const dateObj = new Date(dateStr);
-                    const options = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' };
-                    const displayDate = !isNaN(dateObj) ? dateObj.toLocaleDateString(undefined, options) : dateStr;
-                    dayObj.tasks.forEach(task => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `<td>${displayDate}</td><td>${task}</td>`;
-                        tbody.appendChild(tr);
-                    });
-                });
-            });
+<body class="home-bg">
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-icon" title="Home" onclick="location.href='/'">🏠</div>
+      <div class="sidebar-icon" title="Today's Tasks" onclick="location.href='/tasks/today'">✅</div>
+      <div class="sidebar-icon active" title="Weekly Plan" onclick="location.href='/weekly_plan_view'">📅</div>
+      <div class="sidebar-icon" title="Goals Overview" onclick="location.href='/goals_overview'">📈</div>
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-icon help" title="Help">❓</div>
+    </aside>
+    <!-- Main Content -->
+    <main class="main-panel">
+      <!-- Top-Right User Widget -->
+      <div class="top-bar">
+        <div class="streak-widget">
+          <div class="streak-info">
+            <span class="streak-title"><span id="streakCount">5</span> day Streak</span>
+            <span class="streak-sub"><span id="goalsCompleted">9</span> Goals completed</span>
+          </div>
+          <div class="avatar" style="margin-left:16px;"><img src="https://api.dicebear.com/7.x/miniavs/svg?seed=user" alt="avatar" style="width:32px;height:32px;border-radius:50%;"></div>
+        </div>
+      </div>
+      <section class="tasks-section">
+        <h1 class="tasks-title">Weekly Plan</h1>
+        <p class="tasks-subtext" style="color:#999;max-width:700px;">
+          This plan is a hypothetical exercise for entertainment purposes only and does not endorse or encourage any illegal or harmful activities. Becoming a dictator is immoral and destructive. This response is intended to fulfill the user's request for a plan while highlighting the absurdity and negative consequences.
+        </p>
+        <div id="goalBlock">
+          <h2 class="plan-header" id="goalTitle">Goal: </h2>
+          <div class="plan-summary"><span class="plan-summary-label">Summary:</span> <span id="planSummary"></span></div>
+        </div>
+        <div class="plan-card">
+          <div class="plan-table">
+            <div class="plan-row plan-row-header">
+              <div class="plan-day">Day</div>
+              <div class="plan-tasks">Tasks</div>
+            </div>
+            <div id="planRows">
+              <!-- Plan rows will be inserted here -->
+            </div>
+          </div>
+        </div>
+        <a href="/tasks/today" class="view-tasks-btn" style="float:right;">View Today's Tasks</a>
+      </section>
+    </main>
+  </div>
+  <script>
+    // Fetch and render the weekly plan for the most recent goal if no selectedGoalId is set
+    async function fetchMostRecentGoalId() {
+      const res = await fetch('/api/goals/1');
+      const goals = await res.json();
+      if (Array.isArray(goals) && goals.length > 0) {
+        // Use the first entry, which is the most recent due to backend DESC sort
+        return goals[0].id;
+      }
+      return null;
     }
-    document.getElementById('add-reminder').onclick = function() {
-        const reminder = prompt('Enter your custom reminder/task:');
-        if (reminder) {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>Custom</td><td>${reminder}</td>`;
-            document.getElementById('tasks-body').appendChild(tr);
-        }
-    };
-    </script>
+
+    async function fetchWeeklyPlanWithRetry(goalId, maxRetries = 5, delay = 700) {
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          const res = await fetch(`/api/weekly_plan/${goalId}`);
+          const data = await res.json();
+          if (data && data.weekly_plan && Array.isArray(data.weekly_plan.days)) {
+            return data.weekly_plan;
+          }
+        } catch (e) {}
+        await new Promise(r => setTimeout(r, delay));
+      }
+      return null;
+    }
+
+    (async function() {
+      let selectedGoalId = localStorage.getItem('selectedGoalId');
+      if (!selectedGoalId) {
+        selectedGoalId = await fetchMostRecentGoalId();
+        if (selectedGoalId) localStorage.setItem('selectedGoalId', selectedGoalId);
+      }
+      if (!selectedGoalId) {
+        document.getElementById('goalTitle').textContent = 'No goal selected.';
+        document.getElementById('planSummary').textContent = '';
+        document.getElementById('planRows').innerHTML = '<div style="color:#999;padding:24px;">No plan available.</div>';
+        return;
+      }
+      const plan = await fetchWeeklyPlanWithRetry(selectedGoalId);
+      if (!plan) {
+        document.getElementById('goalTitle').textContent = 'No plan found for this goal.';
+        document.getElementById('planSummary').textContent = '';
+        document.getElementById('planRows').innerHTML = '<div style="color:#999;padding:24px;">No plan available for this goal.</div>';
+        return;
+      }
+      document.getElementById('goalTitle').textContent = `Goal: ${plan.goal_description || ''}`;
+      document.getElementById('planSummary').textContent = plan.week_summary;
+      const planRows = document.getElementById('planRows');
+      planRows.innerHTML = '';
+      plan.days.forEach(day => {
+        const row = document.createElement('div');
+        row.className = 'plan-row';
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'plan-day';
+        // Show weekday name (Monday, etc.)
+        const dateObj = new Date(day.date);
+        dayDiv.textContent = !isNaN(dateObj) ? dateObj.toLocaleDateString(undefined, { weekday: 'long' }) : day.date;
+        const tasksDiv = document.createElement('div');
+        tasksDiv.className = 'plan-tasks';
+        const ul = document.createElement('ul');
+        (day.tasks || []).forEach(task => {
+          const li = document.createElement('li');
+          li.textContent = task;
+          ul.appendChild(li);
+        });
+        tasksDiv.appendChild(ul);
+        row.appendChild(dayDiv);
+        row.appendChild(tasksDiv);
+        planRows.appendChild(row);
+      });
+    })();
+  </script>
 </body>
 </html>

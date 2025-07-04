@@ -1,135 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Goals Overview - GoalGPT</title>
-    <link rel="stylesheet" href="/static/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Goals - GoalGPT</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div class="container">
-        <header>
-            <a href="/" class="home-btn">Home</a>
-            <h1>Your Goals</h1>
-        </header>
-        <main>
-            <table class="goals-table">
-                <thead>
-                    <tr>
-                        <th>Goal</th>
-                        <th>Progress</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="goals-body">
-                    <!-- Goals will be loaded here -->
-                </tbody>
-            </table>
-        </main>
-        <footer>
-            <p>&copy; 2025 GoalGPT. All rights reserved.</p>
-        </footer>
-    </div>
-    <script>
-function attachDeleteHandlers() {
-    document.querySelectorAll('.delete-goal-btn').forEach(function(btn) {
-        btn.onclick = function(event) {
-            event.preventDefault();
-            const goalId = btn.getAttribute('data-goal-id');
-            if (confirm('Are you sure you want to delete this goal?')) {
-                fetch(`/api/goals/${goalId}`, { method: 'DELETE' })
-                    .then(res => res.json().then(data => ({ ok: res.ok, data })))
-                    .then(result => {
-                        if (result.ok) {
-                            btn.closest('tr').remove();
-                        } else {
-                            alert(result.data.error || 'Failed to delete goal.');
-                        }
-                    })
-                    .catch(() => alert('Failed to delete goal.'));
-            }
-        };
-    });
-}
-
-function attachEditHandlers() {
-    document.querySelectorAll('.edit-goal-btn').forEach(function(btn) {
-        btn.onclick = function(event) {
-            event.preventDefault();
-            const goalId = btn.getAttribute('data-goal-id');
-            const currentDesc = btn.getAttribute('data-goal-desc');
-            const newDesc = prompt('Edit goal description:', currentDesc);
-            if (newDesc && newDesc !== currentDesc) {
-                fetch(`/api/goals/${goalId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ new_description: newDesc })
-                })
-                .then(res => res.json().then(data => ({ ok: res.ok, data })))
-                .then(result => {
-                    if (result.ok) {
-                        // Update the description in the table without reload
-                        btn.closest('tr').querySelector('td').textContent = newDesc;
-                        btn.setAttribute('data-goal-desc', newDesc);
-                    } else {
-                        alert(result.data.error || 'Failed to update goal.');
-                    }
-                })
-                .catch(() => alert('Failed to update goal.'));
-            }
-        };
-    });
-}
-
-// Fetch all goals for test user (id=1)
-fetch('/api/goals/1')
-    .then(res => res.json())
-    .then(goals => {
-        const tbody = document.getElementById('goals-body');
-        if (!goals.length) {
-            tbody.innerHTML = '<tr><td colspan="3">No goals found.</td></tr>';
-            return;
-        }
-        goals.forEach(goal => {
-            // Simulate progress (replace with real data if available)
-            const progress = Math.floor(Math.random() * 100);
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${goal.description}</td>
-                <td>
-                    <div class="progress-bar-bg">
-                        <div class="progress-bar" style="width:${progress}%;"></div>
-                    </div>
-                    <span>${progress}%</span>
-                </td>
-                <td>
-                    <a href="/weekly_plan_view" class="cta-btn small view-plan-btn" data-goal-id="${goal.id}">View Plan</a>
-                    <button class="cta-btn small secondary edit-goal-btn" data-goal-id="${goal.id}" data-goal-desc="${goal.description.replace(/&/g, '&amp;').replace(/'/g, '&#39;').replace(/"/g, '&quot;')}">Edit</button>
-                    <button class="cta-btn small danger delete-goal-btn" data-goal-id="${goal.id}">Delete</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-        attachDeleteHandlers();
-        attachEditHandlers();
-        // After rendering all rows, attach click handler to all .view-plan-btn links
-        setTimeout(() => {
-            document.querySelectorAll('.view-plan-btn').forEach(function(btn) {
-                btn.addEventListener('click', function(e) {
-                    localStorage.setItem('selectedGoalId', btn.getAttribute('data-goal-id'));
-                });
-            });
-        }, 0);
-    });
-    </script>
-    <style>
-    .goals-table { width: 100%; border-collapse: collapse; margin-top: 24px; }
-    .goals-table th, .goals-table td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
-    .progress-bar-bg { background: #e0e7ef; border-radius: 6px; width: 100px; height: 12px; display: inline-block; margin-right: 8px; }
-    .progress-bar { background: #2d72d9; height: 12px; border-radius: 6px; }
-    .cta-btn.small { padding: 6px 14px; font-size: 0.95em; margin-right: 4px; }
-    .cta-btn.danger { background: #e57373; color: #fff; }
-    .cta-btn.danger:hover { background: #b71c1c; }
-    </style>
+<body class="home-bg">
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-icon" title="Home" onclick="location.href='/'">🏠</div>
+      <div class="sidebar-icon" title="Today's Tasks" onclick="location.href='/tasks/today'">✅</div>
+      <div class="sidebar-icon" title="Weekly Plan" onclick="location.href='/weekly_plan_view'">📅</div>
+      <div class="sidebar-icon active" style="background:#7C3AED;box-shadow:0 0 12px #7C3AED; color:#fff;" title="Goals Overview" onclick="location.href='/goals_overview'">📈</div>
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-icon help" title="Help">❓</div>
+    </aside>
+    <!-- Main Content -->
+    <main class="main-panel">
+      <!-- Top-Right User Widget -->
+      <div class="top-bar">
+        <div class="streak-widget" style="background:#1E1E1E; color:#CCC; border-radius:14px; box-shadow:0 2px 8px rgba(0,0,0,0.18); padding:12px 22px 12px 12px; min-width:180px; display:flex; align-items:center;">
+          <div class="streak-info">
+            <span class="streak-title" style="color:#fff;font-weight:700;">5 Day Streak</span>
+            <span class="streak-sub" style="color:#CCC;">5 Goals Completed</span>
+          </div>
+          <div class="avatar" style="margin-left:16px;"><img src="https://api.dicebear.com/7.x/miniavs/svg?seed=user" alt="avatar" style="width:32px;height:32px;border-radius:50%;"></div>
+        </div>
+      </div>
+      <section class="tasks-section" style="max-width:900px;margin:0 auto;margin-top:60px;">
+        <h1 class="tasks-title" style="font-size:2.5rem;font-weight:800;color:#fff;">Your Goals</h1>
+        <div class="plan-card" style="background:#181A1A;box-shadow:none;padding:0;margin-top:32px;">
+          <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr;align-items:center;padding:24px 32px 12px 32px;color:#CCC;font-weight:600;font-size:1.1rem;border-bottom:1.5px solid #232323;">
+            <div>Goal</div>
+            <div>Progress</div>
+            <div>Actions</div>
+          </div>
+          <div id="goalsTable"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script>
+    async function loadGoals() {
+      const res = await fetch('/api/goals/1');
+      const goals = await res.json();
+      const table = document.getElementById('goalsTable');
+      table.innerHTML = '';
+      if (!Array.isArray(goals) || goals.length === 0) {
+        table.innerHTML = '<div style="color:#999;padding:32px;">No goals found.</div>';
+        return;
+      }
+      goals.forEach((goal, idx) => {
+        // Fake progress for demo, replace with real value if available
+        const progress = Math.floor(Math.random() * 80) + 7;
+        const row = document.createElement('div');
+        row.style.display = 'grid';
+        row.style.gridTemplateColumns = '1.5fr 1fr 1fr';
+        row.style.alignItems = 'center';
+        row.style.padding = '20px 32px';
+        row.style.background = '#1A1A1A';
+        row.style.color = '#fff';
+        row.style.borderBottom = '1px solid #232323';
+        row.innerHTML = `
+          <div style="font-size:1.08rem;">${goal.description}</div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="flex:1;height:10px;background:#232323;border-radius:8px;overflow:hidden;">
+              <div style="height:100%;background:#2563eb;border-radius:8px;width:${progress}%"></div>
+            </div>
+            <span style="font-size:1.05rem;color:#CCC;min-width:36px;text-align:right;">${progress}%</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <a href="#" onclick="localStorage.setItem('selectedGoalId',${goal.id});location.href='/weekly_plan_view'" style="color:#7C3AED;font-weight:600;text-decoration:underline;font-size:1.05rem;">View Plan</a>
+            <button style="background:#7C3AED22;color:#7C3AED;border:none;border-radius:8px;padding:7px 18px;font-weight:600;cursor:pointer;">Edit</button>
+            <button onclick="deleteGoal(${goal.id})" style="background:#F87171;color:#fff;border:none;border-radius:8px;padding:7px 18px;font-weight:600;cursor:pointer;">Delete</button>
+          </div>
+        `;
+        table.appendChild(row);
+      });
+    }
+    async function deleteGoal(goalId) {
+      if (!confirm('Delete this goal?')) return;
+      await fetch(`/api/goals/${goalId}`, { method: 'DELETE' });
+      loadGoals();
+    }
+    loadGoals();
+  </script>
 </body>
 </html>

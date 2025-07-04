@@ -27,29 +27,8 @@
       </div>
       <div class="tasks-section">
         <h1 class="tasks-title">Today's Tasks</h1>
-        <div class="tasks-subtext">Today's goal: how can I become the dictator of the world? (2025-07-01)</div>
-        <div class="task-card">
-          <label class="checkbox-container">
-            <input type="checkbox">
-            <span class="checkmark"></span>
-          </label>
-          <div class="task-content">
-            <div class="task-title">Research historical dictators</div>
-            <div class="task-desc">Identify their rise to power, strategies, ad mistakes. Reflect on the ethical implications of their actions and the devastating impact on their people and countries.</div>
-          </div>
-          <span class="task-tag mindset">Mindset</span>
-        </div>
-        <div class="task-card">
-          <label class="checkbox-container">
-            <input type="checkbox">
-            <span class="checkmark"></span>
-          </label>
-          <div class="task-content">
-            <div class="task-title">Study political philosophy and theory</div>
-            <div class="task-desc">Learn about different forms of government, power dynamics, and …</div>
-          </div>
-          <span class="task-tag ai">AI</span>
-        </div>
+        <div id="tasksSubtext" class="tasks-subtext"></div>
+        <div id="tasksList"></div>
         <form class="task-input-bar">
           <input type="text" placeholder="Add a quick task…" />
           <button type="submit">Add</button>
@@ -57,5 +36,51 @@
       </div>
     </main>
   </div>
+  <script>
+    // Dynamically load today's tasks for the most recent goal
+    async function fetchMostRecentGoalId() {
+      const res = await fetch('/api/goals/1');
+      const goals = await res.json();
+      if (Array.isArray(goals) && goals.length > 0) {
+        // Use the first entry, which is the most recent due to backend DESC sort
+        return goals[0].id;
+      }
+      return null;
+    }
+    (async function() {
+      let selectedGoalId = localStorage.getItem('selectedGoalId');
+      if (!selectedGoalId) {
+        selectedGoalId = await fetchMostRecentGoalId();
+        if (selectedGoalId) localStorage.setItem('selectedGoalId', selectedGoalId);
+      }
+      if (!selectedGoalId) {
+        document.getElementById('tasksSubtext').textContent = 'No goal selected.';
+        return;
+      }
+      const res = await fetch(`/api/tasks/today/${selectedGoalId}`);
+      const data = await res.json();
+      if (!data || !Array.isArray(data.tasks)) {
+        document.getElementById('tasksSubtext').textContent = 'No tasks found for today.';
+        return;
+      }
+      document.getElementById('tasksSubtext').textContent = `Today's goal: ${data.goal} (${data.day})`;
+      const tasksList = document.getElementById('tasksList');
+      tasksList.innerHTML = '';
+      data.tasks.forEach((task, i) => {
+        const card = document.createElement('div');
+        card.className = 'task-card';
+        card.innerHTML = `
+          <label class="checkbox-container">
+            <input type="checkbox">
+            <span class="checkmark"></span>
+          </label>
+          <div class="task-content">
+            <div class="task-title">${task}</div>
+          </div>
+        `;
+        tasksList.appendChild(card);
+      });
+    })();
+  </script>
 </body>
 </html>

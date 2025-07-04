@@ -94,7 +94,7 @@ Output:
                 {"role": "user", "content": plan_prompt}
             ],
             temperature=0.7,
-            max_tokens=500
+            max_tokens=700
         )
         content = response.choices[0].message.content
         start = content.find('{')

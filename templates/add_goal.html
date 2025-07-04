@@ -54,6 +54,10 @@
       });
       const data = await res.json();
       if (data.weekly_plan) {
+        // Set the new goal as selected in localStorage
+        if (data.goal_id) {
+          localStorage.setItem('selectedGoalId', data.goal_id);
+        }
         document.getElementById('planSummary').textContent = data.weekly_plan.week_summary;
         const planRows = document.getElementById('planRows');
         planRows.innerHTML = '';
