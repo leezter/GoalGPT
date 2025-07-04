@@ -11,6 +11,17 @@ body {
   min-height: 100vh;
 }
 
+body.home-bg::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 60% 40% at 20% 20%, #7C3AED44 0%, transparent 70%),
+              radial-gradient(ellipse 40% 30% at 80% 60%, #3B82F644 0%, transparent 80%);
+  opacity: 0.55;
+}
+
 .dashboard-container {
   display: flex;
   min-height: 100vh;

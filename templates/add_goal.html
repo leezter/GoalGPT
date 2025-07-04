@@ -32,7 +32,19 @@
         <h1 class="add-goal-title">Add a New Goal</h1>
         <form class="goal-input-form" id="goalForm">
           <input type="text" id="goalInput" class="goal-input" placeholder="Goal Name / Description" required style="min-width: 340px; width: 100%; max-width: 520px;" />
-          <button type="submit" class="goal-submit-btn">Submit & Generate Weekly Plan</button>
+          <button type="submit" class="goal-submit-btn" id="goalSubmitBtn">
+            <span id="goalSubmitBtnText">Submit & Generate Weekly Plan</span>
+            <span id="goalLoadingSpinner" style="display:none;vertical-align:middle;">
+              <svg width="26" height="26" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg" stroke="#fff">
+                <g fill="none" fill-rule="evenodd" stroke-width="4">
+                  <circle cx="22" cy="22" r="18" stroke-opacity=".3"/>
+                  <path d="M40 22c0-9.94-8.06-18-18-18">
+                    <animateTransform attributeName="transform" type="rotate" from="0 22 22" to="360 22 22" dur="0.9s" repeatCount="indefinite"/>
+                  </path>
+                </g>
+              </svg>
+            </span>
+          </button>
         </form>
         <div id="planCard" class="plan-card" style="display:none;">
           <h2 class="plan-header">AI-Generated Weekly Plan</h2>
@@ -56,6 +68,13 @@
       e.preventDefault();
       const desc = document.getElementById('goalInput').value;
       const planCard = document.getElementById('planCard');
+      const btn = document.getElementById('goalSubmitBtn');
+      const btnText = document.getElementById('goalSubmitBtnText');
+      const spinner = document.getElementById('goalLoadingSpinner');
+      // Show spinner, hide text
+      btn.disabled = true;
+      btnText.style.display = 'none';
+      spinner.style.display = 'inline-block';
       planCard.style.display = 'none';
       const res = await fetch('/add_goal', {
         method: 'POST',
@@ -63,6 +82,11 @@
         body: JSON.stringify({ description: desc })
       });
       const data = await res.json();
+      // Hide spinner, show text, update button label
+      spinner.style.display = 'none';
+      btnText.textContent = 'Regenerate Weekly Plan';
+      btnText.style.display = 'inline';
+      btn.disabled = false;
       if (data.weekly_plan) {
         // Set the new goal as selected in localStorage
         if (data.goal_id) {
