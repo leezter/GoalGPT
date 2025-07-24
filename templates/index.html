@@ -11,9 +11,9 @@
   <div class="dashboard-container">
     <aside class="sidebar">
       <button class="sidebar-icon active" title="Home" aria-current="page">🏠</button>
-      <button class="sidebar-icon" title="Today's Tasks" onclick="location.href='/tasks/today'">✅</button>
-      <button class="sidebar-icon" title="Weekly Plan" onclick="location.href='/weekly_plan_view'">📅</button>
-      <button class="sidebar-icon" title="Goals Overview" onclick="location.href='/goals_overview'">📈</button>
+      <button class="sidebar-icon" title="Today's Tasks">✅</button>
+      <button class="sidebar-icon" title="Weekly Plan">📅</button>
+      <button class="sidebar-icon" title="Goals Overview">📈</button>
       <div class="sidebar-spacer"></div>
       <button class="sidebar-icon help" title="Help">❓</button>
     </aside>
@@ -42,7 +42,148 @@
           </div>
         </div>
       </div>
+      {% if not user_id %}
+      <button class="home-btn secondary" id="loginBtn" style="position: absolute; top: 32px; right: 32px; z-index: 10; min-width: 110px;">Login</button>
+      <button class="home-btn secondary" id="registerBtn" style="position: absolute; top: 32px; right: 150px; z-index: 10; min-width: 130px;">Create Account</button>
+      {% else %}
+      <button class="home-btn secondary" id="logoutBtn" style="position: absolute; top: 32px; right: 32px; z-index: 10; min-width: 110px;">Logout</button>
+      {% endif %}
     </main>
   </div>
+
+  <!-- Login Popup Modal -->
+  <div id="loginModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(20,18,34,0.75); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:#18162a; border-radius:18px; box-shadow:0 4px 32px #7C3AED44; padding:38px 32px 28px 32px; min-width:320px; max-width:90vw; display:flex; flex-direction:column; align-items:center;">
+      <h2 style="color:#fff; font-size:1.5rem; margin-bottom:18px;">Login</h2>
+      <form id="loginForm" style="width:100%; display:flex; flex-direction:column; gap:16px;">
+        <input type="email" id="loginEmail" placeholder="Email" required style="padding:12px 16px; border-radius:8px; border:1.5px solid #333; background:#232136; color:#fff; font-size:1.08rem;" />
+        <input type="password" id="loginPassword" placeholder="Password" required style="padding:12px 16px; border-radius:8px; border:1.5px solid #333; background:#232136; color:#fff; font-size:1.08rem;" />
+        <button type="submit" class="home-btn primary" style="width:100%;">Login</button>
+      </form>
+      <div id="loginError" style="color:#ff6b6b; margin-top:10px; display:none;"></div>
+      <button onclick="document.getElementById('loginModal').style.display='none'" style="margin-top:18px; background:none; border:none; color:#bbb; font-size:1.05rem; cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Register Popup Modal -->
+  <div id="registerModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(20,18,34,0.75); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:#18162a; border-radius:18px; box-shadow:0 4px 32px #7C3AED44; padding:38px 32px 28px 32px; min-width:320px; max-width:90vw; display:flex; flex-direction:column; align-items:center;">
+      <h2 style="color:#fff; font-size:1.5rem; margin-bottom:18px;">Create Account</h2>
+      <form id="registerForm" style="width:100%; display:flex; flex-direction:column; gap:16px;">
+        <input type="text" id="registerName" placeholder="Name" required style="padding:12px 16px; border-radius:8px; border:1.5px solid #333; background:#232136; color:#fff; font-size:1.08rem;" />
+        <input type="email" id="registerEmail" placeholder="Email" required style="padding:12px 16px; border-radius:8px; border:1.5px solid #333; background:#232136; color:#fff; font-size:1.08rem;" />
+        <input type="password" id="registerPassword" placeholder="Password" required style="padding:12px 16px; border-radius:8px; border:1.5px solid #333; background:#232136; color:#fff; font-size:1.08rem;" />
+        <button type="submit" class="home-btn primary" style="width:100%;">Create Account</button>
+      </form>
+      <div id="registerError" style="color:#ff6b6b; margin-top:10px; display:none;"></div>
+      <button onclick="document.getElementById('registerModal').style.display='none'" style="margin-top:18px; background:none; border:none; color:#bbb; font-size:1.05rem; cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    // Show login modal
+    document.getElementById('loginBtn')?.addEventListener('click', function() {
+      document.getElementById('loginModal').style.display = 'flex';
+      document.getElementById('loginError').style.display = 'none';
+    });
+    // Handle login form
+    document.getElementById('loginForm').onsubmit = async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      const errorDiv = document.getElementById('loginError');
+      errorDiv.style.display = 'none';
+      const res = await fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      if (res.ok) {
+        document.getElementById('loginModal').style.display = 'none';
+        location.reload();
+      } else {
+        const data = await res.json();
+        errorDiv.textContent = data.error || 'Login failed.';
+        errorDiv.style.display = 'block';
+      }
+    };
+
+    // Show register modal
+    document.getElementById('registerBtn')?.addEventListener('click', function() {
+      document.getElementById('registerModal').style.display = 'flex';
+      document.getElementById('registerError').style.display = 'none';
+    });
+    // Handle register form
+    document.getElementById('registerForm').onsubmit = async function(e) {
+      e.preventDefault();
+      const name = document.getElementById('registerName').value;
+      const email = document.getElementById('registerEmail').value;
+      const password = document.getElementById('registerPassword').value;
+      const errorDiv = document.getElementById('registerError');
+      errorDiv.style.display = 'none';
+      const res = await fetch('/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      });
+      if (res.ok) {
+        // Auto-login after registration
+        const loginRes = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        if (loginRes.ok) {
+          document.getElementById('registerModal').style.display = 'none';
+          location.reload();
+        } else {
+          errorDiv.textContent = 'Account created, but login failed.';
+          errorDiv.style.display = 'block';
+        }
+      } else {
+        const data = await res.json();
+        errorDiv.textContent = data.error || 'Registration failed.';
+        errorDiv.style.display = 'block';
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+      var userLoggedIn = {{ (user_id is not none)|tojson|safe }};
+      // Sidebar enforcement (already present)
+      document.querySelectorAll('.sidebar-icon').forEach(function(btn) {
+        if (!btn.classList.contains('active')) {
+          btn.addEventListener('click', function(e) {
+            if (!userLoggedIn) {
+              e.preventDefault();
+              document.getElementById('loginModal').style.display = 'flex';
+              document.getElementById('loginError').style.display = 'none';
+            } else {
+              var title = btn.getAttribute('title');
+              if (title === "Today's Tasks") window.location.href = '/tasks/today';
+              else if (title === 'Weekly Plan') window.location.href = '/weekly_plan_view';
+              else if (title === 'Goals Overview') window.location.href = '/goals_overview';
+              else if (title === 'Home') window.location.href = '/';
+            }
+          });
+        }
+      });
+      // Main content buttons enforcement
+      if (!userLoggedIn) {
+        document.querySelectorAll('.home-btn-row a, .home-btn.primary.home-btn-large').forEach(function(btn) {
+          btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('loginModal').style.display = 'flex';
+            document.getElementById('loginError').style.display = 'none';
+          });
+        });
+      }
+    });
+
+    // Logout button handler
+    document.getElementById('logoutBtn')?.addEventListener('click', async function() {
+      await fetch('/logout', { method: 'POST' });
+      location.reload();
+    });
+  </script>
 </body>
 </html>

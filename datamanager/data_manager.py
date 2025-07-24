@@ -320,3 +320,33 @@ class SQLiteDataManager(AbstractDataManager):
         deleted = cur.rowcount > 0
         conn.close()
         return deleted
+
+    def get_user_by_email(self, email):
+        """
+        Retrieve a user from the database by email address.
+        Args:
+            email (str): The email address of the user to retrieve.
+        Returns:
+            sqlite3.Row: The user record, or None if not found.
+        """
+        conn = self.get_connection()
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM users WHERE email = ?", (email,))
+        result = cur.fetchone()
+        conn.close()
+        return result
+
+    def verify_user(self, email, password_hash):
+        """
+        Verify a user's credentials.
+        Args:
+            email (str): The user's email address.
+            password_hash (str): The hashed password to check.
+        Returns:
+            sqlite3.Row: The user record if credentials are correct, else None.
+        """
+        user = self.get_user_by_email(email)
+        if user and user['password_hash'] == password_hash:
+            return user
+        return None

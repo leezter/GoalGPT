@@ -11,22 +11,12 @@
   <div class="dashboard-container">
     <!-- Sidebar -->
     <aside class="sidebar">
-      <div class="sidebar-icon" title="Home">
-        <button type="button" onclick="location.href='/'">🏠</button>
-      </div>
-      <div class="sidebar-icon" title="Today's Tasks">
-        <button type="button" onclick="location.href='/tasks/today'">✅</button>
-      </div>
-      <div class="sidebar-icon active" title="Weekly Plan">
-        <button type="button" aria-disabled="true" aria-current="page" class="sidebar-home-disabled">📅</button>
-      </div>
-      <div class="sidebar-icon" title="Goals Overview">
-        <button type="button" onclick="location.href='/goals_overview'">📈</button>
-      </div>
+      <button class="sidebar-icon" title="Home">🏠</button>
+      <button class="sidebar-icon" title="Today's Tasks">✅</button>
+      <button class="sidebar-icon active" title="Weekly Plan">📅</button>
+      <button class="sidebar-icon" title="Goals Overview">📈</button>
       <div class="sidebar-spacer"></div>
-      <div class="sidebar-icon help" title="Help">
-        <button type="button">❓</button>
-      </div>
+      <button class="sidebar-icon help" title="Help">❓</button>
     </aside>
     <!-- Main Content -->
     <main class="main-panel">
@@ -64,6 +54,27 @@
     </main>
   </div>
   <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var userLoggedIn = {{ (user_id is not none)|tojson|safe }};
+      document.querySelectorAll('.sidebar-icon').forEach(function(btn) {
+        if (!btn.classList.contains('active')) {
+          btn.addEventListener('click', function(e) {
+            if (!userLoggedIn) {
+              e.preventDefault();
+              document.getElementById('loginModal').style.display = 'flex';
+              document.getElementById('loginError').style.display = 'none';
+            } else {
+              var title = btn.getAttribute('title');
+              if (title === "Today's Tasks") window.location.href = '/tasks/today';
+              else if (title === 'Weekly Plan') window.location.href = '/weekly_plan_view';
+              else if (title === 'Goals Overview') window.location.href = '/goals_overview';
+              else if (title === 'Home') window.location.href = '/';
+            }
+          });
+        }
+      });
+    });
+
     // Fetch and render the weekly plan for the most recent goal if no selectedGoalId is set
     async function fetchMostRecentGoalId() {
       const res = await fetch('/api/goals/1');
@@ -123,9 +134,37 @@
         const tasksDiv = document.createElement('div');
         tasksDiv.className = 'plan-tasks';
         const ul = document.createElement('ul');
+        // Debug: log the structure of day.tasks
+        console.log('day.tasks:', day.tasks);
         (day.tasks || []).forEach(task => {
+          // Debug: log each task
+          console.log('task:', task);
           const li = document.createElement('li');
-          li.textContent = task;
+          if (typeof task === 'string') {
+            li.textContent = task;
+          } else if (typeof task === 'object' && task !== null) {
+            // Show description or fallback to JSON
+            li.textContent = task.description || JSON.stringify(task);
+            // Show YouTube links if present
+            if (Array.isArray(task.youtube_links) && task.youtube_links.length > 0) {
+              const linksDiv = document.createElement('div');
+              linksDiv.className = 'youtube-links';
+              task.youtube_links.forEach((url, idx) => {
+                const a = document.createElement('a');
+                a.href = url;
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer';
+                a.textContent = `YouTube Video ${idx + 1}`;
+                a.style.marginLeft = '8px';
+                a.style.display = 'inline-block';
+                linksDiv.appendChild(a);
+              });
+              li.appendChild(document.createElement('br'));
+              li.appendChild(linksDiv);
+            }
+          } else {
+            li.textContent = '[Invalid task: ' + JSON.stringify(task) + ']';
+          }
           ul.appendChild(li);
         });
         tasksDiv.appendChild(ul);
@@ -133,6 +172,28 @@
         row.appendChild(tasksDiv);
         planRows.appendChild(row);
       });
+
+      // Add debug output to the page
+      let debugDiv = document.getElementById('debugOutput');
+      if (!debugDiv) {
+        debugDiv = document.createElement('pre');
+        debugDiv.id = 'debugOutput';
+        debugDiv.style.background = '#f8f8f8';
+        debugDiv.style.color = '#333';
+        debugDiv.style.fontSize = '12px';
+        debugDiv.style.padding = '12px';
+        debugDiv.style.margin = '24px 0';
+        debugDiv.style.overflowX = 'auto';
+        document.querySelector('.tasks-section').appendChild(debugDiv);
+      }
+      let debugText = '';
+      if (plan.days && plan.days.length > 0) {
+        debugText += 'First day object (raw):\n' + JSON.stringify(plan.days[0], null, 2) + '\n\n';
+        debugText += 'First day tasks (raw):\n' + JSON.stringify(plan.days[0].tasks, null, 2);
+      } else {
+        debugText = 'No days in plan.';
+      }
+      debugDiv.textContent = debugText;
     })();
   </script>
 </body>

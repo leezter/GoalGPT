@@ -10,22 +10,12 @@
 <body class="home-bg">
   <div class="dashboard-container">
     <aside class="sidebar">
-      <div class="sidebar-icon" title="Home">
-        <button type="button" onclick="location.href='/'">🏠</button>
-      </div>
-      <div class="sidebar-icon" title="Today's Tasks">
-        <button type="button" onclick="location.href='/tasks/today'">✅</button>
-      </div>
-      <div class="sidebar-icon" title="Weekly Plan">
-        <button type="button" onclick="location.href='/weekly_plan_view'">📅</button>
-      </div>
-      <div class="sidebar-icon" title="Goals Overview">
-        <button type="button" onclick="location.href='/goals_overview'">📈</button>
-      </div>
+      <button class="sidebar-icon" title="Home">🏠</button>
+      <button class="sidebar-icon" title="Today's Tasks">✅</button>
+      <button class="sidebar-icon" title="Weekly Plan">📅</button>
+      <button class="sidebar-icon" title="Goals Overview">📈</button>
       <div class="sidebar-spacer"></div>
-      <div class="sidebar-icon help" title="Help">
-        <button type="button">❓</button>
-      </div>
+      <button class="sidebar-icon help" title="Help">❓</button>
     </aside>
     <main class="main-panel add-goal-panel">
       <div class="add-goal-content">
@@ -63,7 +53,66 @@
       </div>
     </main>
   </div>
+
+  <!-- Login Popup Modal -->
+  <div id="loginModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(20,18,34,0.75); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:#18162a; border-radius:18px; box-shadow:0 4px 32px #7C3AED44; padding:38px 32px 28px 32px; min-width:320px; max-width:90vw; display:flex; flex-direction:column; align-items:center;">
+      <h2 style="color:#fff; font-size:1.5rem; margin-bottom:18px;">Login</h2>
+      <form id="loginForm" style="width:100%; display:flex; flex-direction:column; gap:16px;">
+        <input type="email" id="loginEmail" placeholder="Email" required style="padding:12px 16px; border-radius:8px; border:1.5px solid #333; background:#232136; color:#fff; font-size:1.08rem;" />
+        <input type="password" id="loginPassword" placeholder="Password" required style="padding:12px 16px; border-radius:8px; border:1.5px solid #333; background:#232136; color:#fff; font-size:1.08rem;" />
+        <button type="submit" class="home-btn primary" style="width:100%;">Login</button>
+      </form>
+      <div id="loginError" style="color:#ff6b6b; margin-top:10px; display:none;"></div>
+      <button onclick="document.getElementById('loginModal').style.display='none'" style="margin-top:18px; background:none; border:none; color:#bbb; font-size:1.05rem; cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+
   <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var userLoggedIn = {{ (user_id is not none)|tojson|safe }};
+      document.querySelectorAll('.sidebar-icon').forEach(function(btn) {
+        if (!btn.classList.contains('active')) {
+          btn.addEventListener('click', function(e) {
+            if (!userLoggedIn) {
+              e.preventDefault();
+              document.getElementById('loginModal').style.display = 'flex';
+              document.getElementById('loginError').style.display = 'none';
+            } else {
+              var title = btn.getAttribute('title');
+              if (title === "Today's Tasks") window.location.href = '/tasks/today';
+              else if (title === 'Weekly Plan') window.location.href = '/weekly_plan_view';
+              else if (title === 'Goals Overview') window.location.href = '/goals_overview';
+              else if (title === 'Home') window.location.href = '/';
+            }
+          });
+        }
+      });
+    });
+    // Login form handler
+    var loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+      loginForm.onsubmit = async function(e) {
+        e.preventDefault();
+        var email = document.getElementById('loginEmail').value;
+        var password = document.getElementById('loginPassword').value;
+        var errorDiv = document.getElementById('loginError');
+        errorDiv.style.display = 'none';
+        var res = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email, password: password })
+        });
+        if (res.ok) {
+          document.getElementById('loginModal').style.display = 'none';
+          location.reload();
+        } else {
+          var data = await res.json();
+          errorDiv.textContent = data.error || 'Login failed.';
+          errorDiv.style.display = 'block';
+        }
+      };
+    }
     document.getElementById('goalForm').onsubmit = async function(e) {
       e.preventDefault();
       const desc = document.getElementById('goalInput').value;
@@ -106,7 +155,29 @@
           const ul = document.createElement('ul');
           day.tasks.forEach(task => {
             const li = document.createElement('li');
-            li.textContent = task;
+            if (typeof task === 'string') {
+              li.textContent = task;
+            } else if (typeof task === 'object' && task !== null) {
+              li.textContent = task.description || '[No description]';
+              if (Array.isArray(task.youtube_links) && task.youtube_links.length > 0) {
+                const linksDiv = document.createElement('div');
+                linksDiv.className = 'youtube-links';
+                task.youtube_links.forEach((url, idx) => {
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.target = '_blank';
+                  a.rel = 'noopener noreferrer';
+                  a.textContent = `YouTube Video ${idx + 1}`;
+                  a.style.marginLeft = '8px';
+                  a.style.display = 'inline-block';
+                  linksDiv.appendChild(a);
+                });
+                li.appendChild(document.createElement('br'));
+                li.appendChild(linksDiv);
+              }
+            } else {
+              li.textContent = '[Invalid task]';
+            }
             ul.appendChild(li);
           });
           tasksDiv.appendChild(ul);

@@ -81,3 +81,13 @@ class AbstractDataManager(ABC):
     @abstractmethod
     def get_completed_tasks(self, user_id: int):
         pass
+
+
+    @abstractmethod
+    def get_user_by_email(self, email: str):
+        pass
+
+
+    @abstractmethod
+    def verify_user(self, email: str, password_hash: str):
+        pass
