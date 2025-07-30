@@ -6,6 +6,7 @@ from datamanager.data_manager import SQLiteDataManager
 import os
 import openai
 from werkzeug.security import generate_password_hash, check_password_hash
+from datamanager.youtube_search import search_youtube_videos
 
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 client = openai.OpenAI(api_key=OPENAI_API_KEY)
@@ -128,22 +129,23 @@ If no relevant YouTube video exists for a task, return an empty array for youtub
             new_tasks = []
             for task in day.get('tasks', []):
                 if isinstance(task, dict) and 'description' in task and 'youtube_links' in task:
+                    desc = task['description']
+                    real_links = search_youtube_videos(desc, api_key=os.environ.get('YOUTUBE_API_KEY'))
+                    print(f"YouTube search for: {desc} => {real_links}")
+                    task['youtube_links'] = real_links
                     new_tasks.append(task)
                 elif isinstance(task, str):
-                    new_tasks.append({"description": task, "youtube_links": []})
+                    real_links = search_youtube_videos(task, api_key=os.environ.get('YOUTUBE_API_KEY'))
+                    print(f"YouTube search for: {task} => {real_links}")
+                    new_tasks.append({"description": task, "youtube_links": real_links})
                 else:
-                    # Fallback for malformed tasks
                     desc = task.get('description', str(task)) if isinstance(task, dict) else str(task)
-                    links = task.get('youtube_links', []) if isinstance(task, dict) else []
-                    new_tasks.append({"description": desc, "youtube_links": links})
+                    real_links = search_youtube_videos(desc, api_key=os.environ.get('YOUTUBE_API_KEY'))
+                    print(f"YouTube search for: {desc} => {real_links}")
+                    new_tasks.append({"description": desc, "youtube_links": real_links})
             day['tasks'] = new_tasks
-        # Print token usage to terminal if available
-        if hasattr(response, 'usage') and response.usage:
-            print(f"OpenAI API token usage: prompt={response.usage.prompt_tokens}, completion={response.usage.completion_tokens}, total={response.usage.total_tokens}")
-        else:
-            print("OpenAI API token usage info not available in response.")
+        # ...existing code...
     except Exception as e:
-        print("OpenAI API error:", e)
         # Fallback: generate plan with empty youtube_links
         weekly_plan = {
             "week_summary": f"This week focuses on making progress toward: {description}",

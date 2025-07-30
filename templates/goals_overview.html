@@ -8,7 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body class="home-bg">
-  <div class="dashboard-container responsive-dashboard">
+  <div class="dashboard-container responsive-dashboard" data-user-id="{{ user_id|default('') }}">
     <!-- Sidebar -->
     <aside class="sidebar responsive-sidebar">
       <button class="sidebar-icon" title="Home">🏠</button>
@@ -44,8 +44,19 @@
     </main>
   </div>
   <script>
+    function getUserId() {
+      var val = document.querySelector('.dashboard-container').getAttribute('data-user-id');
+      if (!val || val === '' || val === 'None' || val === 'null' || val === 'undefined') return null;
+      return parseInt(val);
+    }
+    var userId = getUserId();
+    var userLoggedIn = userId !== null && !isNaN(userId);
     async function loadGoals() {
-      const res = await fetch('/api/goals/1');
+      if (!userLoggedIn) {
+        document.getElementById('goalsTable').innerHTML = '<div style="color:#999;padding:32px;">Please log in to view your goals.</div>';
+        return;
+      }
+      const res = await fetch(`/api/goals/${userId}`);
       const goals = await res.json();
       const table = document.getElementById('goalsTable');
       table.innerHTML = '';
@@ -90,7 +101,6 @@
     loadGoals();
     // Sidebar navigation and login enforcement
     document.addEventListener('DOMContentLoaded', function() {
-      var userLoggedIn = {{ (user_id is not none)|tojson|safe }};
       document.querySelectorAll('.sidebar-icon').forEach(function(btn) {
         if (!btn.hasAttribute('aria-disabled')) {
           btn.addEventListener('click', function(e) {
